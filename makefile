@@ -8,13 +8,13 @@ ROOT=${PWD}
 kernel: libc linker
 
 libc:
-	$(MAKE) -C libc MODE216="kernel" ROOT=${ROOT}
+	$(MAKE) -C libc MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
 linker:
-	$(MAKE) -C linker MODE216="kernel" ROOT=${ROOT}
+	$(MAKE) -C linker MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
 kernel:
-	$(MAKE) -C kernel ROOT=${ROOT}
+	$(MAKE) -C kernel ROOT=${ROOT} PARALLEL=${PARALLEL} ${PARALLEL}
 
 symbols:
 	$(MAKE) -C kernel kernel.sym ROOT=${ROOT}

@@ -37,7 +37,8 @@ align 4
 extern OS216_Fatal
 extern OS216_SysCall
 extern OS216_Int_Syscall
-extern OS216_Enable8259Pic
+extern OS216_Setup8259Pic
+extern OS216_Disable8259Pic
 
 ; There are 32 exceptions. Each one has its own function here.
 OS216_Int_DivideByZero:
@@ -83,7 +84,7 @@ OS216_Int_GPFault:
     call OS216_Fatal
 
 OS216_Int_PageFault:
-    dummy_int page_fault_name
+    
 
 OS216_Int_FPU:
     dummy_int fpu_name
@@ -141,9 +142,25 @@ NUM_SET_INTERRUPTS equ 21
     mov DWORD [OS216_IDTInfo+2], OS216_IDT
     lidt [OS216_IDTInfo]
     
-    ; TOOD: Check for an APIC instead of a PIC if possible...
-    call OS216_Enable8259Pic
+    ; We always need to set up the IRQ vectors, even with an APIC
+    call OS216_Setup8259Pic
     
+    ; Check for an APIC
+    mov eax, 1
+    push ebx
+    cpuid
+    pop ebx
+    bt edx, 9
+    jc has_apic
+    
+    ; Now that the interrupt controller is properly configured, we can enable interrupts.
+    sti
+    ret
+    
+has_apic:
+    ; Not supported yet....
+    ; call OS216_Disable8259Pic
+    ; call OS216_EnableApic
     ; Now that the interrupt controller is properly configured, we can enable interrupts.
     sti
     ret

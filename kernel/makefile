@@ -20,12 +20,12 @@ LIBARCH=$(ARCH)/lib216arch.a
 $(LIBPLATFORM): buildplatform
 
 buildplatform:
-	$(MAKE) -C $(PLATFORM)
+	$(MAKE) -C $(PLATFORM) ${PARALLEL}
 
 $(LIBARCH): buildarch
 
 buildarch:
-	$(MAKE) -C $(ARCH)
+	$(MAKE) -C $(ARCH) ${PARALLEL}
 
 OBJECTS=cpp.o driver.o malloc.o message.o schedule.o kernel.o syscall.o
 
