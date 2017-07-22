@@ -5,7 +5,7 @@ LIBARCH=lib216arch.a
 
 all: $(LIBARCH)
 
-OBJECTS=interrupt.o memory.o init.o syscall.o
+OBJECTS=interrupt.o memory.o init.o syscall.o 8259pic.o
 
 $(LIBARCH): $(OBJECTS)
 	$(AR) rc $(LIBARCH) $(OBJECTS)
@@ -18,6 +18,9 @@ memory.o: memory.s
 
 init.o: init.s
 	$(AS) $(ASFLAGS) init.s -o init.o
+
+8259pic.o: 8259pic.s
+	$(AS) $(ASFLAGS) 8259pic.s -o 8259pic.o
 
 syscall.o: syscall.s
 	$(AS) $(ASFLAGS) syscall.s -o syscall.o

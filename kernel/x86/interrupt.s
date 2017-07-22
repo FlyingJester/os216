@@ -12,12 +12,6 @@ struc OS216_IDTDescriptor
     idt_offset1 resw 1
 endstruc
 
-section .text
-align 4
-
-extern OS216_Fatal
-extern OS216_SysCall
-
 %macro dummy_int 1
     push null_term
     push %1
@@ -25,6 +19,25 @@ extern OS216_SysCall
     push file_name
     call OS216_Fatal
 %endmacro
+
+; Dirties ebx. eax must contain the IDT
+%macro os216_setup_interrupt 3 ; Address, Type, IRQ Number, selector
+    ; Setup the offset.
+    mov ebx, %1
+    mov WORD [eax+idt_offset0+( %3 * OS216_IDTDescriptor_size )], bx
+    shr ebx, 16
+    mov WORD [eax+idt_offset1+( %3 * OS216_IDTDescriptor_size )], bx
+    mov BYTE [eax+idt_flags+( %3 * OS216_IDTDescriptor_size )], %2
+    mov WORD [eax+idt_selector+( %3 * OS216_IDTDescriptor_size)], 0x10 ; Set the code segment
+%endmacro
+
+section .text
+align 4
+
+extern OS216_Fatal
+extern OS216_SysCall
+extern OS216_Int_Syscall
+extern OS216_Enable8259Pic
 
 ; There are 32 exceptions. Each one has its own function here.
 OS216_Int_DivideByZero:
@@ -41,8 +54,6 @@ OS216_Int_Overflow:
 
 OS216_Int_Bounds:
     dummy_int bounds_name
-
-extern OS216_Int_Syscall
 
 OS216_Int_DevNotReady:
     dummy_int dev_not_ready_name
@@ -61,8 +72,7 @@ OS216_Int_BadSegment:
 
 OS216_Int_StackFault:
     dummy_int stack_fault_name
-; value is 1347641551
-; addrs is 1053055
+
 OS216_Int_GPFault:
     pop eax
     pop eax
@@ -90,33 +100,12 @@ OS216_Int_SSE:
 OS216_Int_Virtualization:
     dummy_int virtualization_name
 
-; Dirties ebx. eax must contain the IDT
-%macro os216_setup_interrupt 3 ; Address, Type, IRQ Number, selector
-    ; Setup the offset.
-    mov ebx, %1
-    mov WORD [eax+idt_offset0+( %3 * OS216_IDTDescriptor_size )], bx
-    shr ebx, 16
-    mov WORD [eax+idt_offset1+( %3 * OS216_IDTDescriptor_size )], bx
-    mov BYTE [eax+idt_flags+( %3 * OS216_IDTDescriptor_size )], %2
-    mov WORD [eax+idt_selector+( %3 * OS216_IDTDescriptor_size)], 0x10 ; Set the code segment
-%endmacro
-
-;%macro os216_setup_code_interrupt 3 ; Address, Type, IRQ Number
-;os216_setup_interrupt %1, %2, %3, 0x10 ; 0x10 is the code selector.
-;%endmacro
-
-;%macro os216_setup_tss_interrupt 3 ; Address, Type, IRQ Number
-;os216_setup_interrupt %1, %2, %3, 0x18 ; 0x18 is the tss selector.
-;%endmacro
-
 global OS216_InitInterrupts
 OS216_InitInterrupts:
     ; Begin setting up the divide by zero interrupt
     mov eax, OS216_IDT
     ; Setup the offset.
     
-    ; We will pop ebx at the end of the function.
-    push ebx
     os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
     ; Reserved
     os216_setup_interrupt OS216_Int_NMI, 0x8F, 2
@@ -139,8 +128,6 @@ OS216_InitInterrupts:
     os216_setup_interrupt OS216_Int_SSE, 0x8F, 19
     os216_setup_interrupt OS216_Int_Virtualization, 0x8F, 20
     
-    ; End setting up the divide by zero interrupt
-    
 NUM_SET_INTERRUPTS equ 21
 
     add eax, OS216_IDTEntry_size * NUM_SET_INTERRUPTS
@@ -150,14 +137,15 @@ NUM_SET_INTERRUPTS equ 21
 ;    add eax, OS216_IDTEntry_size
 ;%endrep
     
-    pop ebx
-    
     mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*NUM_SET_INTERRUPTS
     mov DWORD [OS216_IDTInfo+2], OS216_IDT
     lidt [OS216_IDTInfo]
     
-    mov eax, 0
+    ; TOOD: Check for an APIC instead of a PIC if possible...
+    call OS216_Enable8259Pic
     
+    ; Now that the interrupt controller is properly configured, we can enable interrupts.
+    sti
     ret
 
 section .data
@@ -200,11 +188,12 @@ sse_name:
     db 'OS216_Int_SSE', 0
 virtualization_name:
     db 'OS216_Int_Virtualization', 0
-null_term:
-    db 0
 
 section .bss
 align 4
+
+null_term:
+    resb 0
 
 OS216_IDTInfo:
     resb 6
