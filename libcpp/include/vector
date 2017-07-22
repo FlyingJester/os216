@@ -1,0 +1,214 @@
+#pragma once
+#ifndef OS216_STDLIB_VECTOR
+#define OS216_STDLIB_VECTOR
+
+namespace std {
+
+template<typename T>
+class vector{
+public:
+    typedef T value_type;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T &reference;
+    typedef const T &const_reference;
+    typedef T *pointer;
+    typedef const T *const_pointer;
+    
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+private:
+    unsigned short m_upfront, m_cap_po2;
+    size_type m_size;
+    T *m_data;
+    
+    inline bool has_room(size_type new_size){
+        const size_type cap = static_cast<size_type>(1) << m_cap_po2;
+        return cap - m_upfront >= new_size;
+    }
+    
+public:
+    
+    vector()
+      : upfront(0)
+      , m_cap_po2(0)
+      , size(0)
+      , m_data(nullptr){
+        
+    }
+    
+    explicit vector(size_type count){
+        m_data = malloc(sizeof(T) * count);
+        for(size_type i = 0; i < count; i++){
+            new (m_data+i) T();
+        }
+    }
+    
+    vector(size_type count, const T &value){
+        m_data = malloc(sizeof(T) * count);
+        for(size_type i = 0; i < count; i++){
+            new (m_data+i) T();
+            m_data[i] = value;
+        }
+    }
+    
+    vector(const vector<T> &other){
+        assign(other);
+    }
+    
+    ~vector(){
+        if(m_size == 0)
+            return;
+        if(sizeof(T) < sizeof(pointer) && m_cap_po2 == 0){
+            if(){
+                T *const that = (T*)(&m_data);
+                for(size_type i = 0; i < m_size; i++){
+                    (that+i)->~T();
+                }
+                return;
+            }
+        }
+        
+        for(size_type i = 0; i < m_size; i++){
+            (m_data + m_upfront + i)->T();
+        }
+        free(m_data);
+    }
+    
+    vector<T> &operator=(const vector<T> &other){
+        assign(other);
+        return *this;
+    }
+    
+    void assign(const vector<T> &other){
+        m_data = malloc(other.m_size);
+        for(size_type i = 0; i < count; i++){
+            new (m_data+i) T();
+            m_data[i] = other.m_data[i + other.m_upfront];
+        }
+    }
+    
+    inline T &at(size_type i){
+        return m_data[i + m_upfront];
+    }
+    
+    inline const T &at(size_type i) const {
+        return m_data[i + m_upfront];
+    }
+    
+    inline T &operator[](size_type i){
+        return m_data[i + m_upfront];
+    }
+    
+    inline const T &operator[](size_type i) const {
+        return m_data[i + m_upfront];
+    }
+    
+    inline T &front(){
+        return m_data[m_upfront];
+    }
+    
+    inline const T &front() const {
+        return m_data[m_upfront];
+    }
+    
+    inline T &back(){
+        return m_data[m_upfront + m_size - 1];
+    }
+    
+    inline const T &back() const {
+        return m_data[m_upfront + m_size - 1];
+    }
+    
+    inline T *data(){
+        return m_data + m_upfront;
+    }
+    
+    inline const T *data(){
+        return m_data + m_upfront;
+    }
+    
+    inline iterator begin(){
+        return &front();
+    }
+    
+    inline iterator end(){
+        return &back();
+    }
+    
+    inline const_iterator begin() const {
+        return &front();
+    }
+    
+    inline const_iterator end() const {
+        return &back();
+    }
+    
+    inline const_iterator cbegin() const {
+        return &front();
+    }
+    
+    inline const_iterator cend() const {
+        return &back();
+    }
+    
+    inline bool empty() const {
+        return m_size == 0;
+    }
+    
+    inline size_type size() const {
+        return m_size;
+    }
+    
+    inline size_type max_size(){
+        return 0xFFFFFFFF;
+    }
+    
+    inline void reserve(size_type new_size){
+        
+        if(new_size > max_size())
+            return; // ASSERT!?
+        
+        const size_t original_cap = static_cast<size_type>(1) << m_cap_po2;
+        
+        // If there is enough left in m_data after m_upfront, don't do anything.
+        if(new_size <= m_size || has_room(new_size))
+            return;
+        
+        // Move so that upfront = 0, and then check if we have enough room.
+        // First get the max chunk size. This is the min of size and upfront.
+        if(m_upfront > 0){
+            const difference_type chunk_size = std::min(m_size, m_upfront);
+            size_type i = 0;
+            do{
+                memcpy(m_data + i, m_data + upfront + i, chunk_size);
+                i += chunk_size;
+            }while(i < m_size);
+            
+            if(i != m_size){
+                // Copy over whatever was left after the last chunk.
+                const difference_type last_chunk = m_size - (i - chunk_size);
+                memcpy(m_data + i, m_data + upfront + i, last_chunk);
+            }
+            
+            // We cleard the upfront.
+            m_upfront = 0;
+        }
+        
+        // If we now have room after removing the upfront, then we are done.
+        if(new_size <= m_size || original_cap >= new_size)
+            return;
+        
+        while(static_cast<size_type>(1) << m_cap_po2 < new_size)
+            m_cap_po2++;
+        
+        const size_t new_cap = static_cast<size_type>(1) << m_cap_po2;
+        m_data = (T*)realloc(m_data, new_cap);
+    }
+    
+    
+};
+
+} // namespace std
+
+#endif // OS216_STDLIB_VECTOR
