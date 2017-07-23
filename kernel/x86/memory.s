@@ -42,6 +42,10 @@ OS216_InitSegmentation:
     ; Load the new GDT
     lgdt [os216_gdt]
     
+    mov eax, cr0
+    or eax, DWORD 0x01
+    mov cr0, eax
+    
     ; Force all segments to be reloaded immediately.
     xor eax, eax
     jmp 0x10:reload_code_segment

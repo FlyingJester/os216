@@ -31,8 +31,8 @@ _OS216_AsmMain:
     mov esp, stack_top
     call OS216_Main
     
-    mov eax, 0
-    ud2
+;    mov eax, 0
+;    ud2
     
     ; We don't really need to clean up here, but we might as well.
     push dword 0
