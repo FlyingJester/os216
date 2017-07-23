@@ -102,13 +102,6 @@ OS216_Int_SSE:
 OS216_Int_Virtualization:
     dummy_int virtualization_name
 
-%assign i 0
-%rep 16
-OS216_Int_IRQ %+ i :
-    os216_driver_interrupt i
-%assign i i+1
-%endrep
-
 global OS216_InitInterrupts
 OS216_InitInterrupts:
     ; Begin setting up the divide by zero interrupt
