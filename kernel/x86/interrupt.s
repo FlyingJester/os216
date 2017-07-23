@@ -39,6 +39,7 @@ extern OS216_SysCall
 extern OS216_Int_Syscall
 extern OS216_Setup8259Pic
 extern OS216_Disable8259Pic
+extern OS216_CallDriverAtInterrupt
 
 ; There are 32 exceptions. Each one has its own function here.
 OS216_Int_DivideByZero:
@@ -75,7 +76,7 @@ OS216_Int_StackFault:
     dummy_int stack_fault_name
 
 OS216_Int_GPFault:
-    pop eax
+    add esp, 4
     pop eax
     push null_term
     push seg_fault_name
@@ -84,7 +85,7 @@ OS216_Int_GPFault:
     call OS216_Fatal
 
 OS216_Int_PageFault:
-    
+    dummy_int page_fault_name
 
 OS216_Int_FPU:
     dummy_int fpu_name
@@ -100,6 +101,13 @@ OS216_Int_SSE:
     
 OS216_Int_Virtualization:
     dummy_int virtualization_name
+
+%assign i 0
+%rep 16
+OS216_Int_IRQ %+ i :
+    os216_driver_interrupt i
+%assign i i+1
+%endrep
 
 global OS216_InitInterrupts
 OS216_InitInterrupts:
@@ -133,11 +141,11 @@ NUM_SET_INTERRUPTS equ 21
 
     add eax, OS216_IDTEntry_size * NUM_SET_INTERRUPTS
     
-;%rep 256-NUM_SET_INTERRUPTS
-;    mov WORD [eax+idt_selector], 0x10 ; Put the code segment into the selector for the ISR
-;    add eax, OS216_IDTEntry_size
-;%endrep
-    
+%rep 32-NUM_SET_INTERRUPTS
+    mov WORD [eax+idt_selector], 0x10 ; Put the code segment into the selector for the ISR
+    add eax, OS216_IDTEntry_size
+%endrep
+
     mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*NUM_SET_INTERRUPTS
     mov DWORD [OS216_IDTInfo+2], OS216_IDT
     lidt [OS216_IDTInfo]
@@ -208,6 +216,9 @@ virtualization_name:
 
 section .bss
 align 4
+
+driver_interrupt_vector_drivers:
+    resd 16
 
 null_term:
     resb 0
