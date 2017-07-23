@@ -2,6 +2,11 @@
 #ifndef OS216_STDLIB_VECTOR
 #define OS216_STDLIB_VECTOR
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <new>
+
 namespace std {
 
 template<typename T>
@@ -30,10 +35,10 @@ private:
 public:
     
     vector()
-      : upfront(0)
+      : m_upfront(0)
       , m_cap_po2(0)
-      , size(0)
-      , m_data(nullptr){
+      , m_size(0)
+      , m_data(NULL){
         
     }
     
@@ -59,18 +64,8 @@ public:
     ~vector(){
         if(m_size == 0)
             return;
-        if(sizeof(T) < sizeof(pointer) && m_cap_po2 == 0){
-            if(){
-                T *const that = (T*)(&m_data);
-                for(size_type i = 0; i < m_size; i++){
-                    (that+i)->~T();
-                }
-                return;
-            }
-        }
-        
         for(size_type i = 0; i < m_size; i++){
-            (m_data + m_upfront + i)->T();
+            (m_data + m_upfront + i)->~T();
         }
         free(m_data);
     }
@@ -81,11 +76,14 @@ public:
     }
     
     void assign(const vector<T> &other){
-        m_data = malloc(other.m_size);
+        const size_type count = other.m_size;
+        m_data = (T*)malloc(count * sizeof(T));
         for(size_type i = 0; i < count; i++){
-            new (m_data+i) T();
-            m_data[i] = other.m_data[i + other.m_upfront];
+            const T &that = other.m_data[i + other.m_upfront];
+            new (m_data+i) T(that);
         }
+        m_upfront = 0;
+        m_size = count;
     }
     
     inline T &at(size_type i){
@@ -124,7 +122,7 @@ public:
         return m_data + m_upfront;
     }
     
-    inline const T *data(){
+    inline const T *data() const {
         return m_data + m_upfront;
     }
     
@@ -178,17 +176,17 @@ public:
         // Move so that upfront = 0, and then check if we have enough room.
         // First get the max chunk size. This is the min of size and upfront.
         if(m_upfront > 0){
-            const difference_type chunk_size = std::min(m_size, m_upfront);
+            const difference_type chunk_size = ((m_size < m_upfront) ? m_size : m_upfront);
             size_type i = 0;
             do{
-                memcpy(m_data + i, m_data + upfront + i, chunk_size);
+                memcpy(m_data + i, m_data + m_upfront + i, chunk_size);
                 i += chunk_size;
             }while(i < m_size);
             
             if(i != m_size){
                 // Copy over whatever was left after the last chunk.
                 const difference_type last_chunk = m_size - (i - chunk_size);
-                memcpy(m_data + i, m_data + upfront + i, last_chunk);
+                memcpy(m_data + i, m_data + m_upfront + i, last_chunk);
             }
             
             // We cleard the upfront.
@@ -206,6 +204,11 @@ public:
         m_data = (T*)realloc(m_data, new_cap);
     }
     
+    void push_back(const T &that){
+        reserve(m_upfront + m_size + 1);
+        new (m_data + m_upfront + m_size) T(that);
+        m_size++;
+    }
     
 };
 

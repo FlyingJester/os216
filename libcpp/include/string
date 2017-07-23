@@ -1,0 +1,239 @@
+#pragma once
+#ifndef OS216_STDLIB_STRING
+#define OS216_STDLIB_STRING
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+
+namespace std {
+
+template<typedef CharType>
+class basic_string {
+public:
+    typedef CharType value_type;
+    typedef unsigned size_type;
+    typedef ptrdiff_t difference_type;
+    typedef CharType &reference;
+    typedef const CharType &const_reference;
+    typedef CharType *pointer;
+    typedef const CharType *const_pointer;
+    
+    typedef pointer iterator;
+    typedef const_pointer const_iterator;
+private:
+    union {
+        CharType *m_pointer;
+        CharType m_local[sizeof(void*)/sizeof(CharType)];
+    } m_value;
+    int m_size;
+
+#ifdef __GNUC__
+__attribute__((always_inline))
+#endif
+    inline static size_type MaxLocalSize(){
+        return (sizeof(void*)/sizeof(CharType))-1;
+    }
+
+#ifdef __GNUC__
+__attribute__((always_inline))
+#endif
+    inline bool isLocal() const { 
+        return m_size < 0;
+    }
+    
+    inline void setSize(unsigned size, bool local){
+        m_size = (local) ? (-(size + 1)) : (size + 1);
+    }
+    
+    inline void setSize(unsigned size){
+        const bool is_local = isLocal();
+        setSize(size, is_local);
+    }
+    
+#ifdef __GNUC__
+__attribute__((always_inline))
+#endif
+    inline static size_type Allocated(size_type s){
+        return ((s + 1) / 64) + 64
+    }
+    
+    inline size_type allocated() const {
+        return Allocated(m_size);
+    }
+    
+public:
+    
+#ifdef __GNUC__
+__attribute__((always_inline))
+#endif
+    static inline size_type max_size(){
+        return 0x7FFFFFFE;
+    }
+    
+    inline size_type length() const {
+        return (m_size & (max_size()+1)) - 1;
+    }
+    
+    inline size_type size() const {
+        return length();
+    }
+    
+    inline const CharType *data() const {
+        return m_is_local ? m_value.m_pointer : m_value.m_local;
+    }
+    
+    inline CharType *data() {
+        return m_is_local ? m_value.m_pointer : m_value.m_local;
+    }
+    
+    inline const CharType *c_str() const {
+        return data();
+    }
+    
+    inline CharType *c_str() {
+        return data();
+    }
+    
+    inline CharType &operator[](size_type i){
+        return data()[i];
+    }
+    
+    inline const CharType &operator[](size_type i) const {
+        return data()[i];
+    }
+    
+    inline CharType &at(size_type i){
+        return data()[i];
+    }
+    
+    inline const CharType &at(size_type i) const {
+        return data()[i];
+    }
+    
+    inline CharType &front(){
+        return data()[0];
+    }
+    
+    inline const CharType &front() const {
+        return data()[0];
+    }
+    
+    inline CharType &back(){
+        return data()[length()-1];
+    }
+    
+    inline const CharType &back() const {
+        return data()[length()-1];
+    }
+    
+    inline iterator begin(){
+        return data();
+    }
+    
+    inline const_iterator end() const {
+        return data()+length();
+    }
+    
+    inline const_iterator begin() const {
+        return data();
+    }
+    
+    inline const_iterator end() const {
+        return data()+length();
+    }
+    
+    inline const_iterator cbegin() const {
+        return data();
+    }
+    
+    inline const_iterator cend() const {
+        return data()+length();
+    }
+    
+    inline bool empty() const {
+        return m_size == 0;
+    }
+    
+    void reserve(size_type new_size){
+        if(isLocal() && new_size >= MaxLocalSize()){
+            const size_type new_allocated = allocated(new_size);
+            CharType *const new_data = (CharType*)malloc(new_allocated * sizeof(CharType));
+            memcpy(new_data, data(), length() + sizeof(CharType));
+            m_value.m_pointer = new_data;
+            setSize(m_size, false);
+        }
+        else if(new_size >= allocated()){
+            const size_type new_allocated = allocated(new_size);
+            m_value.m_pointer =
+                (CharType*)realloc(m_value.m_pointer, new_allocated * sizeof(CharType));
+        }
+    }
+    
+    inline void clear(){
+        setSize(0);
+    }
+    
+    inline bool operator==(const CharType *other){
+        return strcmp(other, data()) == 0;
+    }
+    
+    inline bool operator==(const basic_string<CharType> &other){
+        const size_type len = length();
+        return len == other.length() && memcmp(other.data(), data(), len) == 0;
+    }
+    
+    template<typename OtherStr>
+    inline basic_string<CharType> &operator+=(const OtherStr &other){
+        return append(other);
+    }
+    
+    inline basic_string<CharType> &append(const CharType *str){
+        return append(str, strlen(str)/sizeof(CharType));
+    }
+    
+    inline basic_string<CharType> &append(basic_string<CharType> &str){
+        return append(str.data(), str.length());
+    }
+    
+    inline basic_string<CharType> &append(const CharType *str, size_type len){
+        const size_type old_len = length();
+        reserve(old_len + len);
+        memcpy(data()+old_len, str, len);
+        setSize(old_len + len);
+    }
+    
+    template<typename InputIter>
+    inline basic_string<CharType> &append(const InputIter first, const InputIter last){
+        if(first == last())
+            return;
+        
+        size_type n = 0;
+        const size_type old_len = length();
+        InputIter i = first;
+        
+        do{
+            if(n % 64 == 0)
+                reserve(old_len + 1 + n + 64);
+            end()[n++] = i++;
+        }while(i != last);
+        
+        end()[n] = '\0';
+        setSize(n);
+    }
+    
+    inline basic_string<CharType> &append(CharType c){
+        append(&c, static_cast<size_type>(1));
+    }
+    
+    void push_back(CharType c){
+        append(c);
+    }
+    
+}; // class basic_string
+
+typedef basic_string<char> string;
+
+} // namespace std
+
+#endif
