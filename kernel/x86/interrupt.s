@@ -1,35 +1,5 @@
-
-struc OS216_IDTEntry
-    idt_entry_limit resw 1
-    idt_entry_base  resd 1
-endstruc
-
-struc OS216_IDTDescriptor
-    idt_offset0 resw 1
-    idt_selector resw 1
-    idt_unused resb 1
-    idt_flags resb 1
-    idt_offset1 resw 1
-endstruc
-
-%macro dummy_int 1
-    push null_term
-    push %1
-    push DWORD 0
-    push file_name
-    call OS216_Fatal
-%endmacro
-
-; Dirties ebx. eax must contain the IDT
-%macro os216_setup_interrupt 3 ; Address, Type, IRQ Number, selector
-    ; Setup the offset.
-    mov ebx, %1
-    mov WORD [eax+idt_offset0+( %3 * OS216_IDTDescriptor_size )], bx
-    shr ebx, 16
-    mov WORD [eax+idt_offset1+( %3 * OS216_IDTDescriptor_size )], bx
-    mov BYTE [eax+idt_flags+( %3 * OS216_IDTDescriptor_size )], %2
-    mov WORD [eax+idt_selector+( %3 * OS216_IDTDescriptor_size)], 0x10 ; Set the code segment
-%endmacro
+%include "interrupt.inc"
+%include "8259pic.inc"
 
 section .text
 align 4
@@ -138,13 +108,18 @@ NUM_SET_INTERRUPTS equ 21
     mov WORD [eax+idt_selector], 0x10 ; Put the code segment into the selector for the ISR
     add eax, OS216_IDTEntry_size
 %endrep
-
-    mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*NUM_SET_INTERRUPTS
+    
+    
+    
+    mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*32
     mov DWORD [OS216_IDTInfo+2], OS216_IDT
     lidt [OS216_IDTInfo]
     
     ; We always need to set up the IRQ vectors, even with an APIC
+    push DWORD 40
+    push DWORD 32
     call OS216_Setup8259Pic
+    add esp, 8
     
     ; Check for an APIC
     mov eax, 1
@@ -153,6 +128,8 @@ NUM_SET_INTERRUPTS equ 21
     pop ebx
     bt edx, 9
     jc has_apic
+    ; Set the interrupts we want to see.
+    pic_clear_mask_irq 0
     
     ; Now that the interrupt controller is properly configured, we can enable interrupts.
     sti

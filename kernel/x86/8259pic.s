@@ -1,20 +1,4 @@
-
-; PIC1 is 0x20, PIC2 is 0xA0.
-; This makes 1 = 0x20 and 2 = 0xA0
-%define pic_cmd(N) (0x20 + ((0xA0 - 0x20)*( N - 1 )))
-%define pic_data(N) (pic_cmd(N)+1)
-
-%macro pic_cmd_out 2
-    mov al, BYTE %2
-    out pic_cmd( %1 ), al
-    call nop_call
-%endmacro
-
-%macro pic_data_out 2
-    mov al, BYTE %2
-    out pic_data( %1 )+1, al
-    call nop_call
-%endmacro
+%include "8259pic.inc"
 
 section .text
 align 4
@@ -25,12 +9,12 @@ nop_call:
 
 global OS216_Setup8259Pic
 OS216_Setup8259Pic:
-    push ecx
-    
+    xor ecx, ecx
+    xor eax, eax
     ; Save the PIC masks
-    in al, 0x21
+    in al, pic_data(1)+1
     shl ax, 8
-    in al, 0xA1
+    in al, pic_data(2)+1
     mov cx, ax
     
     ; Delay...
@@ -40,8 +24,8 @@ OS216_Setup8259Pic:
     pic_cmd_out 1, 0x11
     pic_cmd_out 2, 0x11
     ; Set the interrupt vector offsets.
-    pic_data_out 1, 32
-    pic_data_out 2, 40
+    pic_data_out 1, [esp+4]
+    pic_data_out 2, [esp+8]
     ; Set the identity of PIC2 on PIC1
     pic_data_out 1, 4
     ; Set PIC2's identity
@@ -53,13 +37,13 @@ OS216_Setup8259Pic:
     
     ; Restore saved masks
     mov ax, cx
-    out 0xA1, al
+    xchg al, ah
+    out pic_data(1)+1, al
     shr al, 8
-    out 0x21, al
+    out pic_data(2)+1, al
     
     ; Delay...
     call nop_call
-    pop ecx
     ret
 
 global OS216_Disable8259Pic
