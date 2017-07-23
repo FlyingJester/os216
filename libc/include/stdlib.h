@@ -34,4 +34,4 @@ uint64_t strtoull(const char *__restrict__ str,
     const char **__restrict__ end,
     unsigned base);
 
-#endif OS216_STDLIB_STDLIB_H
+#endif /* OS216_STDLIB_STDLIB_H */
