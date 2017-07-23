@@ -27,7 +27,7 @@ $(LIBARCH): buildarch
 buildarch:
 	$(MAKE) -C $(ARCH) ${PARALLEL}
 
-OBJECTS=cpp.o driver.o malloc.o message.o schedule.o kernel.o syscall.o
+OBJECTS=cpp.o driver.o driver_interrupt.o malloc.o message.o schedule.o kernel.o syscall.o
 
 COMMON_HEADERS=platform/fatal.h platform/print.h
 
@@ -37,6 +37,9 @@ cpp.o: cpp.cpp cpp.hpp cpp.hpp.gch
 
 malloc.o: malloc.c platform/fatal.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c malloc.c -o malloc.o
+
+driver_interrupt.o: driver_interrupt.cpp driver_interrupt.h driver.hpp $(CXX_PRECOMPILED_HEADER)
+	$(CXX) $(CXXFLAGS) -c driver_interrupt.cpp -o driver_interrupt.o
 
 driver.o: driver.cpp driver.hpp arch/memory.h arch/interrupts.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c driver.cpp -o driver.o
