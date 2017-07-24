@@ -1,22 +1,22 @@
 #include "driver.hpp"
 
-#include "arch/io.h"
 #include "platform/fatal.h"
 
 namespace os216 {
 
-bool Driver::hasIOPermission(uint8_t io_port) const {
-    const uint8_t *const ports = getIOPortGrantRangeStart();
+bool Driver::hasIOPermission(uintptr_t io_port, unsigned size) const {
+    const Driver::LocationRange *const ranges = getIOPortGrantRangeStart();
     const size_t count = getIOPortGrantRangeSize();
     for(size_t i = 0; i < count; i++){
-        if(ports[i] == io_port)
+        const uintptr_t start = ranges[i].m_start;
+        if(start >= io_port && io_port - start <= ranges[i].m_length - size)
             return true;
     }
     return false;
 }
 
 bool Driver::hasMemPermission(const void *addr, unsigned size) const{
-    const Driver::MemoryLocationRange *const ranges = getMemoryGrantRangeStart();
+    const Driver::LocationRange *const ranges = getMemoryGrantRangeStart();
     const size_t count = getMemoryGrantRangeSize();
     const uintptr_t addr_i = (uintptr_t)addr;
     for(size_t i = 0; i < count; i++){
@@ -37,66 +37,16 @@ bool Driver::hasIntPermission(unsigned interrupt) const {
     return false;
 }
 
-void Driver::out(uint8_t byte, uint8_t to) const {
-    if(OS216_LIKELY(hasIOPermission(to)))
-        OS216_IOOut(byte, to);
-    else
-        OS216_FATAL("Driver attempted IO out to an invalid port");
-}
-
-uint8_t Driver::in(uint8_t from) const {
-    if(OS216_LIKELY(hasIOPermission(from)))
-        return OS216_IOIn(from);
-    else
-        OS216_FATAL("Driver attempted IO out to an invalid port");
-}
-
-KernelDriver::KernelDriver(const uint8_t *io_ports, size_t num_io_ports,
-    const MemoryLocationRange *memory_locations, size_t num_memory_locations,
-    const unsigned *interrupt_vectors, size_t num_interrupt_vectors)
-  : m_io_ports(io_ports)
-  , m_num_io_ports(num_io_ports)
-  , m_memory_locations(memory_locations)
-  , m_num_memory_locations(num_memory_locations)
-  , m_interrupt_vectors(interrupt_vectors)
-  , m_num_interrupt_vectors(num_interrupt_vectors){
-    
-}
-    
-const Driver::MemoryLocationRange *KernelDriver::getMemoryGrantRangeStart() const {
-    return m_memory_locations;
-}
-
-size_t KernelDriver::getMemoryGrantRangeSize() const {
-    return m_num_memory_locations;
-}
-
-const uint8_t *KernelDriver::getIOPortGrantRangeStart() const {
-    return m_io_ports;
-}
-
-size_t KernelDriver::getIOPortGrantRangeSize() const {
-    return m_num_io_ports;
-}
-
-const unsigned *KernelDriver::getInterruptGrantRangeStart() const {
-    return m_interrupt_vectors;
-}
-
-size_t KernelDriver::getInterruptGrantRangeSize() const {
-    return m_num_interrupt_vectors;
-}
-
-const Driver::MemoryLocationRange *UserDriver::getMemoryGrantRangeStart() const {
-    return &(*m_memory_locations.begin());
+const Driver::LocationRange *UserDriver::getMemoryGrantRangeStart() const {
+    return &(m_memory_locations[0]);
 }
 
 size_t UserDriver::getMemoryGrantRangeSize() const {
     return m_memory_locations.size();
 }
 
-const uint8_t *UserDriver::getIOPortGrantRangeStart() const {
-    return &(*m_io_ports.begin());
+const Driver::LocationRange *UserDriver::getIOPortGrantRangeStart() const {
+    return &(m_io_ports[0]);
 }
 
 size_t UserDriver::getIOPortGrantRangeSize() const {
@@ -104,28 +54,81 @@ size_t UserDriver::getIOPortGrantRangeSize() const {
 }
 
 const unsigned *UserDriver::getInterruptGrantRangeStart() const {
-    return &(*m_interrupt_vectors.begin());
+    return &(m_interrupt_vectors[0]);
 }
 
 size_t UserDriver::getInterruptGrantRangeSize() const {
     return m_interrupt_vectors.size();
 }
 
-void UserDriver::addIOPortGrant(uint8_t iop){
-    m_io_ports.push_back(iop);
+void UserDriver::addIOPortGrant(const LocationRange& range){
+    m_io_ports.push_back(range);
 }
 
-void UserDriver::addMemoryGrant(const MemoryLocationRange& range){
+void UserDriver::addIOPortGrant(uintptr_t start, ptrdiff_t length){
+    const LocationRange range = {start, length};
+    m_io_ports.push_back(range);
+}
+
+void UserDriver::addMemoryGrant(const LocationRange& range){
     m_memory_locations.push_back(range);
 }
 
 void UserDriver::addMemoryGrant(uintptr_t start, ptrdiff_t length){
-    const MemoryLocationRange range = {start, length};
+    const LocationRange range = {start, length};
     m_memory_locations.push_back(range);
 }
 
 void UserDriver::addInterruptGrant(unsigned interrupt){
     m_interrupt_vectors.push_back(interrupt);
+}
+
+template<>
+void Driver::out<uint8_t>(uint8_t data, uintptr_t to) const {
+    if(OS216_LIKELY(hasIOPermission(to, 1)))
+        OS216_IOOut8(data, to);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
+}
+
+template<>
+void Driver::out<uint16_t>(uint16_t data, uintptr_t to) const {
+    if(OS216_LIKELY(hasIOPermission(to, 2)))
+        OS216_IOOut8(data, to);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
+}
+
+template<>
+void Driver::out<uint32_t>(uint32_t data, uintptr_t to) const {
+    if(OS216_LIKELY(hasIOPermission(to, 4)))
+        OS216_IOOut8(data, to);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
+}
+
+template<>
+uint8_t Driver::in<uint8_t>(uintptr_t from) const {
+    if(OS216_LIKELY(hasIOPermission(from, 1)))
+        return OS216_IOIn8(from);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
+}
+
+template<>
+uint16_t Driver::in<uint16_t>(uintptr_t from) const {
+    if(OS216_LIKELY(hasIOPermission(from, 2)))
+        return OS216_IOIn16(from);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
+}
+
+template<>
+uint32_t Driver::in<uint32_t>(uintptr_t from) const {
+    if(OS216_LIKELY(hasIOPermission(from, 4)))
+        return OS216_IOIn32(from);
+    else
+        OS216_FATAL("Driver attempted IO out to an invalid port");
 }
 
 } // namespace os216

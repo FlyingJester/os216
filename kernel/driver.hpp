@@ -1,9 +1,12 @@
 #pragma once
 #include "cpp.hpp"
 
+#include "arch/io.h"
+
 #include "platform/fatal.h"
 
 #include "attributes.h"
+#include "device.h"
 
 #include <vector>
 
@@ -12,7 +15,7 @@ namespace os216 {
 class Driver {
 public:
     
-    struct MemoryLocationRange{
+    struct LocationRange{
         uintptr_t m_start;
         ptrdiff_t m_length;
     };
@@ -20,20 +23,18 @@ public:
     Driver() {}
     virtual ~Driver() {}
     
-    virtual const MemoryLocationRange *getMemoryGrantRangeStart() const = 0;
+    virtual const LocationRange *getMemoryGrantRangeStart() const = 0;
     virtual size_t getMemoryGrantRangeSize() const = 0;
     
-    virtual const uint8_t *getIOPortGrantRangeStart() const = 0;
+    virtual const LocationRange *getIOPortGrantRangeStart() const = 0;
     virtual size_t getIOPortGrantRangeSize() const = 0;
     
     virtual const unsigned *getInterruptGrantRangeStart() const = 0;
     virtual size_t getInterruptGrantRangeSize() const = 0;
     
-    virtual void onInterrupt(unsigned vec) const = 0;
-    
-    bool hasIOPermission(uint8_t io_port) const;
-    bool hasMemPermission(const void *addr, unsigned size) const;
-    bool hasIntPermission(unsigned interrupt) const;
+    OS216_WARN_UNUSED_RESULT bool hasIOPermission(uintptr_t io_port, unsigned size) const;
+    OS216_WARN_UNUSED_RESULT bool hasMemPermission(const void *addr, unsigned size) const;
+    OS216_WARN_UNUSED_RESULT bool hasIntPermission(unsigned interrupt) const;
     
     template<typename DataT>
     void write(DataT what, void *to) const {
@@ -44,80 +45,102 @@ public:
     }
     
     template<typename DataT>
-    DataT read(const void *from) const {
+    OS216_WARN_UNUSED_RESULT DataT read(const void *from) const {
         if(OS216_LIKELY(hasMemPermission(from, sizeof(DataT))))
             return static_cast<const DataT*>(from)[0];
         else
             OS216_FATAL("Driver attempted to read from an invalid location");
     }
     
-    void write8(uint8_t byte, void *to) const { write<uint8_t>(byte, to); }
+    template<typename DataT>
+    void out(DataT byte, uintptr_t to) const {
+        if(OS216_LIKELY(hasIOPermission(to, sizeof(DataT))))
+            OS216_IOOut(byte, to, sizeof(DataT));
+        else
+            OS216_FATAL("Driver attempted IO out to an invalid port");
+    }
     
-    void write16(uint16_t word, void *to) const { write<uint16_t>(word, to); }
-    void write32(uint32_t dword, void *to) const { write<uint32_t>(dword, to); }
-    void write64(uint64_t qword, void *to) const { write<uint64_t>(qword, to); }
-    
-    uint8_t read8(const void *from) const { return read<uint8_t>(from); }
-    uint16_t read16(const void *from) const { return read<uint16_t>(from); }
-    uint32_t read32(const void *from) const { return read<uint32_t>(from); }
-    uint64_t read64(const void *from) const { return read<uint64_t>(from); }
-    
-    void out(uint8_t byte, uint8_t to) const;
-    uint8_t in(uint8_t from) const;
+    template<typename DataT>
+    OS216_WARN_UNUSED_RESULT DataT in(uintptr_t from) const {
+        if(OS216_LIKELY(hasIOPermission(from, sizeof(DataT))))
+            return OS216_IOIn(from, sizeof(DataT));
+        else
+            OS216_FATAL("Driver attempted IO out to an invalid port");
+    }
 };
 
-class KernelDriver : public Driver {
-    const uint8_t *const m_io_ports;
-    const size_t m_num_io_ports;
-    
-    const MemoryLocationRange *const m_memory_locations;
-    const size_t m_num_memory_locations;
-    
-    const unsigned *const m_interrupt_vectors;
-    const size_t m_num_interrupt_vectors;
-    
+class Bus : public Driver {
+protected:
+    std::vector<OS216_Device> m_devices;
 public:
     
-    KernelDriver(const uint8_t *io_ports, size_t num_io_ports,
-        const MemoryLocationRange *memory_locations, size_t num_memory_locations,
-        const unsigned *interrupt_vectors, size_t num_interrupt_vectors);
+    virtual const OS216_Device *getDevicesStart() const { return &(m_devices[0]); }
+    virtual size_t getDevicesSize() const { return m_devices.size(); }
     
-    virtual ~KernelDriver(){}
-    
-    virtual const MemoryLocationRange *getMemoryGrantRangeStart() const;
-    virtual size_t getMemoryGrantRangeSize() const;
-    
-    virtual const uint8_t *getIOPortGrantRangeStart() const;
-    virtual size_t getIOPortGrantRangeSize() const;
-    
-    virtual const unsigned *getInterruptGrantRangeStart() const;
-    virtual size_t getInterruptGrantRangeSize() const;
 };
 
-class UserDriver : public Driver {
+class DeviceDriver : public Driver {
+public:
+    
+    const struct OS216_Device &m_device;
+    
+    DeviceDriver(const struct OS216_Device &device)
+      : m_device(device){
+        
+    }
+    
+    virtual void onInterrupt(unsigned vec) const = 0;
+    
+};
+
+class UserDriver : public DeviceDriver {
 public:
 protected:
-    std::vector<uint8_t> m_io_ports;
-    std::vector<MemoryLocationRange> m_memory_locations;
+    std::vector<LocationRange> m_io_ports;
+    std::vector<LocationRange> m_memory_locations;
     std::vector<unsigned> m_interrupt_vectors;
 public:
     
-    UserDriver() {}
+    UserDriver(const struct OS216_Device &device)
+      : DeviceDriver(device){
+        
+    }
+    
     virtual ~UserDriver() {}
     
-    virtual const MemoryLocationRange *getMemoryGrantRangeStart() const;
+    virtual const LocationRange *getMemoryGrantRangeStart() const;
     virtual size_t getMemoryGrantRangeSize() const;
     
-    virtual const uint8_t *getIOPortGrantRangeStart() const;
+    virtual const LocationRange *getIOPortGrantRangeStart() const;
     virtual size_t getIOPortGrantRangeSize() const;
     
     virtual const unsigned *getInterruptGrantRangeStart() const;
     virtual size_t getInterruptGrantRangeSize() const;
     
-    void addIOPortGrant(uint8_t iop);
-    void addMemoryGrant(const MemoryLocationRange& range);
+    void addIOPortGrant(const LocationRange& iop);
+    void addIOPortGrant(uintptr_t start, ptrdiff_t length);
+    void addMemoryGrant(const LocationRange& range);
     void addMemoryGrant(uintptr_t start, ptrdiff_t length);
     void addInterruptGrant(unsigned interrupt);
 };
+
+// These specializations have slightly more efficient representations.
+template<>
+void Driver::out<uint8_t>(uint8_t data, uintptr_t to) const;
+
+template<>
+void Driver::out<uint16_t>(uint16_t data, uintptr_t to) const;
+
+template<>
+void Driver::out<uint32_t>(uint32_t data, uintptr_t to) const;
+
+template<>
+uint8_t Driver::in<uint8_t>(uintptr_t from) const;
+
+template<>
+uint16_t Driver::in<uint16_t>(uintptr_t from) const;
+
+template<>
+uint32_t Driver::in<uint32_t>(uintptr_t from) const;
 
 } // namespace os216

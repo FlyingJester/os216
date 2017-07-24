@@ -4,9 +4,12 @@
 
 #include "platform/print.h"
 #include "platform/fatal.h"
+#include "platform/bus.hpp"
 
 #include "arch/memory.h"
 #include "arch/interrupts.h"
+
+namespace os216 {
 
 static const char license_text1[] =
 "Redistribution and use in source and binary forms, with or without \
@@ -48,4 +51,10 @@ void OS216_Main(){
     OS216_Newline();
     OS216_Newline();
     OS216_PrintString(license_text3);
+    
+    std::vector<BusPointer> buses;
+    EnumerateBuses(buses);
+    
 }
+
+} // namespace os216
