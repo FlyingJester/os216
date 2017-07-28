@@ -204,6 +204,12 @@ public:
         m_data = (T*)realloc(m_data, new_cap);
     }
     
+    void push_back(T &that){
+        reserve(m_upfront + m_size + 1);
+        new (m_data + m_upfront + m_size) T(that);
+        m_size++;
+    }
+    
     void push_back(const T &that){
         reserve(m_upfront + m_size + 1);
         new (m_data + m_upfront + m_size) T(that);
