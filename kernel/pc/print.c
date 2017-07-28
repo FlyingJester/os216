@@ -202,28 +202,25 @@ void OS216_PC_PrintInteger(enum OS216_PC_PrintMode mode, int n){
 }
 
 void OS216_PC_PrintAddress(enum OS216_PC_PrintMode mode, void *p){
-    char buffer[18] = {
-        '0', 'x',
-        '0', '0', '0', '0', '0', '0', '0', '0',
-        '0', '0', '0', '0', '0', '0', '0', '0'
-    };
+    char buffer[2+(sizeof(void*)*8)] = {};
     
     uintptr_t n = (uintptr_t)p;
-    unsigned i = 2;
+    unsigned i = 0;
     buffer[0] = '0';
     buffer[1] = 'x';
     
     if((int)mode >= eOS216_PC_NUM_MODES)
         OS216_FATAL("Invalid print color");
     
-    while(n){
-        const int digit = n | 0x0F;
-        buffer[sizeof(buffer) - i++] = digit > 9 ? (digit + 'A' - 10) : (digit + '0');
+    while(i <= sizeof(buffer)-2){
+        const int digit = n & 0x0F;
+        buffer[sizeof(buffer) - i++] = (digit > 9) ? (digit + 'A' - 10) : (digit + '0');
         n >>= 4;
     }
     
-    if(i + os216_print_x >= os216_vga_w)
+    if(sizeof(buffer) + os216_print_x >= os216_vga_w)
         OS216_Newline();
-    OS216_VGA_PutString(os216_print_x, os216_print_y, mode, sizeof(buffer), buffer);
     
+    OS216_VGA_PutString(os216_print_x, os216_print_y, mode, sizeof(buffer), buffer);
+    os216_print_x += sizeof(buffer);
 }
