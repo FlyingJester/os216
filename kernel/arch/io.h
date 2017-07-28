@@ -8,7 +8,7 @@ extern "C" {
 
 void OS216_IOOut(unsigned byte, unsigned to, unsigned size);
 void OS216_IOOut8(unsigned byte, unsigned to);
-void OS216_IOOut12(unsigned byte, unsigned to);
+void OS216_IOOut16(unsigned byte, unsigned to);
 void OS216_IOOut32(unsigned byte, unsigned to);
 
 unsigned OS216_IOIn(unsigned from, unsigned size);

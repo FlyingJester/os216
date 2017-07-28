@@ -5,7 +5,7 @@ LIBPLATFORM=lib216platform.a
 
 all: $(LIBPLATFORM)
 
-OBJECTS=fatal.o print.o vga.o pci.o
+OBJECTS=fatal.o print.o vga.o pci.o bus.o
 
 $(LIBPLATFORM): $(OBJECTS)
 	$(AR) rc $(LIBPLATFORM) $(OBJECTS)
@@ -19,8 +19,11 @@ print.o: print.c ../platform/print.h pc_print.h vga.h
 vga.o: vga.c vga.h pc_print.h
 	$(CC) $(CFLAGS) -c vga.c -o vga.o
 
-pci.o: pci.cpp ../platform/bus.hpp ../driver.hpp ../device.h ../cpp.hpp
+pci.o: pci.cpp pci.hpp ../platform/bus.hpp ../driver.hpp ../device.h ../cpp.hpp
 	$(CXX) $(CXXFLAGS) -c pci.cpp -o pci.o
+
+bus.o: bus.cpp pci.hpp ../platform/bus.hpp ../driver.hpp ../device.h ../cpp.hpp
+	$(CXX) $(CXXFLAGS) -c bus.cpp -o bus.o
 
 clean:
 	rm $(OBJECTS) $(LIBPLATFORM)

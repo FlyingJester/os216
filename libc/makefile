@@ -1,9 +1,9 @@
 
 LIBC=lib216c.a
-OBJECTS=string.o 
+OBJECTS=string.o
 #stdlib.o ctype.o
 
-all: $(LIBC)
+all: $(LIBC) crti.o crtn.o
 
 .if ${MODE216} == "kernel"
 
@@ -34,8 +34,14 @@ string.o: string.c include/string.h
 ctype.o: ctype.c include/ctype.h
 	$(CC) $(CFLAGS) -c ctype.c -o ctype.o
 
+crti.o: crti.s
+	$(AS) $(ASFLAGS) -o crti.o crti.s
+
+crtn.o: crtn.s
+	$(AS) $(ASFLAGS) -o crtn.o crtn.s
+
 clean:
-	rm $(OBJECTS)
+	rm $(OBJECTS) crti.o crtn.o
 	rm $(LIBC)
 
 .PHONY: clean

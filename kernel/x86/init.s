@@ -22,13 +22,17 @@ align 4
 
 ; NASM implies GCC for us?
 extern __cxa_finalize
-
+extern _init
+extern _fini
 extern OS216_Main
 
 global _OS216_AsmMain
 _OS216_AsmMain:
     cli
     mov esp, stack_top
+    
+    call _init
+    
     call OS216_Main
     
 ;    mov eax, 0
@@ -39,6 +43,8 @@ _OS216_AsmMain:
     call __cxa_finalize
     ; It probably doesn't matter if the stack is balanced, but...
     add esp, 4
+    
+    call _fini
     
 .hang:
     cli

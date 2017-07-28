@@ -3,10 +3,18 @@ ENTRY(_OS216_AsmMain)
 SECTIONS{
     /* Start at 1 MB */
     . = 1M;
-    
+
     .text BLOCK(4K) : ALIGN(4K){
         *(.multiboot)
         *(.text)
+    }
+    
+    .init BLOCK(4K) : ALIGN(4K){
+        *(.init)
+    }
+    
+    .fini BLOCK(4K) : ALIGN(4K){
+        *(.fini)
     }
     
     .rodata BLOCK(4K) : ALIGN(4K){

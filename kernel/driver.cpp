@@ -94,7 +94,7 @@ void Driver::out<uint8_t>(uint8_t data, uintptr_t to) const {
 template<>
 void Driver::out<uint16_t>(uint16_t data, uintptr_t to) const {
     if(OS216_LIKELY(hasIOPermission(to, 2)))
-        OS216_IOOut8(data, to);
+        OS216_IOOut16(data, to);
     else
         OS216_FATAL("Driver attempted IO out to an invalid port");
 }
@@ -102,7 +102,7 @@ void Driver::out<uint16_t>(uint16_t data, uintptr_t to) const {
 template<>
 void Driver::out<uint32_t>(uint32_t data, uintptr_t to) const {
     if(OS216_LIKELY(hasIOPermission(to, 4)))
-        OS216_IOOut8(data, to);
+        OS216_IOOut32(data, to);
     else
         OS216_FATAL("Driver attempted IO out to an invalid port");
 }
@@ -112,7 +112,7 @@ uint8_t Driver::in<uint8_t>(uintptr_t from) const {
     if(OS216_LIKELY(hasIOPermission(from, 1)))
         return OS216_IOIn8(from);
     else
-        OS216_FATAL("Driver attempted IO out to an invalid port");
+        OS216_FATAL("Driver attempted IO in to an invalid port");
 }
 
 template<>
@@ -120,7 +120,7 @@ uint16_t Driver::in<uint16_t>(uintptr_t from) const {
     if(OS216_LIKELY(hasIOPermission(from, 2)))
         return OS216_IOIn16(from);
     else
-        OS216_FATAL("Driver attempted IO out to an invalid port");
+        OS216_FATAL("Driver attempted IO in to an invalid port");
 }
 
 template<>
@@ -128,7 +128,7 @@ uint32_t Driver::in<uint32_t>(uintptr_t from) const {
     if(OS216_LIKELY(hasIOPermission(from, 4)))
         return OS216_IOIn32(from);
     else
-        OS216_FATAL("Driver attempted IO out to an invalid port");
+        OS216_FATAL("Driver attempted IO in to an invalid port");
 }
 
 } // namespace os216

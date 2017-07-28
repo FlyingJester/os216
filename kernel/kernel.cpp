@@ -54,7 +54,6 @@ void OS216_Main(){
     
     std::vector<BusPointer> buses;
     EnumerateBuses(buses);
-    
 }
 
 } // namespace os216

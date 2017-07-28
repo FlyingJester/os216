@@ -59,9 +59,20 @@ syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 kernel.o: kernel.cpp driver.hpp platform/bus.hpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
 
+CRTBEGIN=`$(CXX) -print-file-name=crtbegin.o`
+CRTEND=`$(CXX) -print-file-name=crtend.o`
+
+crtbegin.o:
+	cp ${CRTBEGIN} ${PWD}
+
+crtend.o:
+	cp ${CRTEND} ${PWD}
+
+CRTOBJS=../libc/crti.o crtbegin.o crtend.o ../libc/crtn.o
+
 # Kernel binary
-kernel.elf: $(LIBPLATFORM) $(LIBARCH) $(OBJECTS) $(ROOT)/libc/lib216c.a kernel216.ld
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LIBPLATFORM) $(LIBARCH) -L$(ROOT)/libc -l216c libgcc.a -T kernel216.ld -o kernel.elf 
+kernel.elf: $(LIBPLATFORM) $(LIBARCH) $(OBJECTS) $(CRTOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
+	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LIBPLATFORM) $(LIBARCH) -L$(ROOT)/libc -l216c $(CRTOBJS) libgcc.a -T kernel216.ld -o kernel.elf 
 
 kernel.sym: kernel.elf
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym
@@ -69,7 +80,7 @@ kernel.sym: kernel.elf
 clean:
 	$(MAKE) -C $(PLATFORM) clean
 	$(MAKE) -C $(ARCH) clean
-	rm *.o kernel.elf $(PRECOMPILED_HEADERS) $(C_PRECOMPILED_HEADER) $(CXX_PRECOMPILED_HEADER)
+	rm *.o kernel.elf $(PRECOMPILED_HEADERS) $(C_PRECOMPILED_HEADER) $(CXX_PRECOMPILED_HEADER) crtbegin.o crtend.o
 
 .PHONY: clean mkplatform mkarch buildarch buildplatform
 .IGNORE: clean

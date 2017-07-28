@@ -14,8 +14,14 @@ struct BusPointer {
 public:
     BusPointer() : m_bus(NULL) {}
     
-    BusPointer(BusPointer &from) : m_bus(from.m_bus) {
+    BusPointer(BusPointer &from)
+      : m_bus(from.m_bus) {
         from.m_bus = NULL;
+    }
+    
+    BusPointer(Bus *bus)
+      : m_bus(bus) {
+        
     }
     
     ~BusPointer(){

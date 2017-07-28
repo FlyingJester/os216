@@ -24,6 +24,22 @@
   #endif
 #endif
 
+#ifndef OS216_PURE
+  #ifdef __GNUC__
+    #define OS216_PURE __attribute__((pure))
+  #elif defined _MSC_VER_
+    #define OS216_PURE
+  #endif
+#endif
+
+#ifndef OS216_MEMORY_PURE
+  #ifdef __GNUC__
+    #define OS216_MEMORY_PURE __attribute__((const))
+  #elif defined _MSC_VER_
+    #define OS216_MEMORY_PURE
+  #endif
+#endif
+
 #ifndef OS216_MALLOC_ATTR
   #ifdef __GNUC__
     #define OS216_MALLOC_ATTR __attribute__((malloc,returns_nonnull,warn_unused_result))
