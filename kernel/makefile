@@ -59,8 +59,8 @@ syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 kernel.o: kernel.cpp driver.hpp platform/bus.hpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
 
-CRTBEGIN=`$(CXX) -print-file-name=crtbegin.o`
-CRTEND=`$(CXX) -print-file-name=crtend.o`
+CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`
+CRTEND=`$(CXX) $(CXXFLAGS) -print-file-name=crtend.o`
 
 crtbegin.o:
 	cp ${CRTBEGIN} ${PWD}
@@ -68,11 +68,12 @@ crtbegin.o:
 crtend.o:
 	cp ${CRTEND} ${PWD}
 
-CRTOBJS=../libc/crti.o crtbegin.o crtend.o ../libc/crtn.o
+CRTSTARTOBJS=../libc/crti.o crtbegin.o
+CRTENDOBJS=crtend.o ../libc/crtn.o
 
 # Kernel binary
-kernel.elf: $(LIBPLATFORM) $(LIBARCH) $(OBJECTS) $(CRTOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
-	$(CXX) $(CXXFLAGS) $(OBJECTS) $(LIBPLATFORM) $(LIBARCH) -L$(ROOT)/libc -l216c $(CRTOBJS) libgcc.a -T kernel216.ld -o kernel.elf 
+kernel.elf: $(LIBPLATFORM) $(LIBARCH) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
+	$(CXX) $(CXXFLAGS) $(CRTSTARTOBJS) $(OBJECTS) $(LIBPLATFORM) $(LIBARCH) -L$(ROOT)/libc -l216c libgcc.a $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
 
 kernel.sym: kernel.elf
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym

@@ -10,15 +10,13 @@ const uintptr_t PCIBus::pci_config_address_port = 0x0CF8;
 const uintptr_t PCIBus::pci_config_data_port = 0x0CFC;
 
 const Driver::LocationRange PCIBus::pci_io_location[2] = {
-    {pci_config_address_port, 4},
-    {pci_config_data_port, 4}
+    LocationRange(pci_config_address_port, 4),
+    LocationRange(pci_config_data_port, 4)
 };
 
-PCIBus::PCIBus(){
-    m_pci_config_address.m_start = in<uint32_t>(pci_config_address_port);
-    m_pci_config_address.m_length = 4;
-    
-    m_pci_configuration_word = read<uint32_t>(configAddress());
+PCIBus::PCIBus()
+  : m_pci_config_address(in<uint32_t>(pci_config_address_port), 4)
+  , m_pci_configuration_word(read<uint32_t>(configAddress())){
     
 }
 

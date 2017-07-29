@@ -3,18 +3,23 @@ ENTRY(_OS216_AsmMain)
 SECTIONS{
     /* Start at 1 MB */
     . = 1M;
-
-    .text BLOCK(4K) : ALIGN(4K){
+    
+    .mutliboot BLOCK(4K) : ALIGN(4K){
         *(.multiboot)
-        *(.text)
     }
     
     .init BLOCK(4K) : ALIGN(4K){
         *(.init)
+        crtend.o(.text)
     }
     
     .fini BLOCK(4K) : ALIGN(4K){
         *(.fini)
+        crtbegin.o(.text)
+    }
+
+    .text BLOCK(4K) : ALIGN(4K){
+        *(.text)
     }
     
     .rodata BLOCK(4K) : ALIGN(4K){

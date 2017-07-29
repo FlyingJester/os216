@@ -4,6 +4,24 @@
 
 namespace os216 {
 
+Driver::LocationRange::LocationRange()
+  : m_start(0)
+  , m_length(0){
+    
+}
+Driver::LocationRange::LocationRange(const LocationRange &other)
+  : m_start(other.m_start)
+  , m_length(other.m_length){
+    
+}
+
+Driver::LocationRange::LocationRange(uintptr_t start, ptrdiff_t length)
+  : m_start(start)
+  , m_length(length){
+    
+}
+
+
 bool Driver::hasIOPermission(uintptr_t io_port, unsigned size) const {
     const Driver::LocationRange *const ranges = getIOPortGrantRangeStart();
     const size_t count = getIOPortGrantRangeSize();
@@ -66,7 +84,7 @@ void UserDriver::addIOPortGrant(const LocationRange& range){
 }
 
 void UserDriver::addIOPortGrant(uintptr_t start, ptrdiff_t length){
-    const LocationRange range = {start, length};
+    const LocationRange range(start, length);
     m_io_ports.push_back(range);
 }
 
@@ -75,7 +93,7 @@ void UserDriver::addMemoryGrant(const LocationRange& range){
 }
 
 void UserDriver::addMemoryGrant(uintptr_t start, ptrdiff_t length){
-    const LocationRange range = {start, length};
+    const LocationRange range(start, length);
     m_memory_locations.push_back(range);
 }
 

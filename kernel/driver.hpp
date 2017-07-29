@@ -16,6 +16,9 @@ class Driver {
 public:
     
     struct LocationRange{
+        LocationRange();
+        LocationRange(const LocationRange &other);
+        LocationRange(uintptr_t start, ptrdiff_t length);
         uintptr_t m_start;
         ptrdiff_t m_length;
     };
