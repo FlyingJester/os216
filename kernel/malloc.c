@@ -41,6 +41,7 @@ static uint8_t OS216_KernelSmallHeap[OS216_SMALL_PAGE_SIZE *
 
 #define OS216_LARGE_HEAP_OBJECT_SIZE OS216_PAGE_SIZE
 
+OS216_COLD
 void OS216_InitKernelMemory(void){
     unsigned i;
     for(i = 0; i < OS216_NUM_SMALL_HEAP_PAGES; i++){
@@ -144,7 +145,7 @@ os216_malloc_find_frame:
 
 OS216_MALLOC_ATTR static void *small_malloc(size_t amount){
     unsigned i;
-    for(i = 0; i < OS216_NUM_SMALL_HEAP_PAGES; i++){
+    for(i = 0; OS216_LIKELY(i < OS216_NUM_SMALL_HEAP_PAGES); i++){
         uint8_t *const bitmap_addr =
             OS216_KernelSmallHeap + (i * OS216_SMALL_PAGE_SIZE);
          /* Same as OS216_KernelSmallHeap + (i * OS216_PAGE_SIZE); */
@@ -264,7 +265,7 @@ static void large_free(void *mem){
     struct OS216_KernelLargeHeapData *data =
         os216_kernel_large_heap_data.next;
     uintptr_t at = (uintptr_t)OS216_KernelLargeHeap;
-    while(data){
+    while(OS216_LIKELY(data)){
         if(at == mem_i){
             if(OS216_UNLIKELY(data->used == 0)){
                 OS216_FATAL("Heap corruption detected: double free in large heap");

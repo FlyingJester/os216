@@ -19,8 +19,11 @@ typedef void(*cxa_destructor)(cxa_destructor_arg);
 
 extern "C" {
 
+OS216_NORETURN
 void __cxa_pure_virtual(void);
+OS216_COLD
 int __cxa_atexit(cxa_destructor destructor, void *arg, void *);
+OS216_COLD
 void __cxa_finalize(void*);
 
 }

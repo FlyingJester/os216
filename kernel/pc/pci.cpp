@@ -6,18 +6,46 @@
 
 namespace os216 {
 
-const uintptr_t PCIBus::pci_config_address_port = 0x0CF8;
-const uintptr_t PCIBus::pci_config_data_port = 0x0CFC;
+static OS216_CONSTEXPR_VALUE uintptr_t pci_config_address_port = 0x0CF8;
+static OS216_CONSTEXPR_VALUE uintptr_t pci_config_data_port = 0x0CFC;
 
-const Driver::LocationRange PCIBus::pci_io_location[2] = {
-    LocationRange(pci_config_address_port, 4),
-    LocationRange(pci_config_data_port, 4)
+#define OS216_PCI_NUM_PCI_IO_PORTS 2
+OS216_CONSTEXPR_VALUE Driver::LocationRange pci_io_location[OS216_PCI_NUM_PCI_IO_PORTS] = {
+    Driver::LocationRange(pci_config_address_port, 4),
+    Driver::LocationRange(pci_config_data_port, 4)
 };
 
 PCIBus::PCIBus()
   : m_pci_config_address(in<uint32_t>(pci_config_address_port), 4)
   , m_pci_configuration_word(read<uint32_t>(configAddress())){
     
+    // Enumerate the bus.
+    
+    
+}
+
+const Driver::LocationRange *PCIBus::getMemoryGrantRangeStart() const {
+    return &m_pci_config_address;
+}
+
+size_t PCIBus::getMemoryGrantRangeSize() const {
+    return 1;
+}
+
+const Driver::LocationRange *PCIBus::getIOPortGrantRangeStart() const {
+    return pci_io_location;
+}
+
+size_t PCIBus::getIOPortGrantRangeSize() const {
+    return OS216_PCI_NUM_PCI_IO_PORTS;
+}
+
+const unsigned *PCIBus::getInterruptGrantRangeStart() const {
+    return NULL;
+}
+
+size_t PCIBus::getInterruptGrantRangeSize() const {
+    return 0;
 }
 
 } // namespace os216

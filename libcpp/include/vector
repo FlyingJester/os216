@@ -9,6 +9,16 @@
 
 namespace std {
 
+#if __cplusplus < 201103L
+    #define OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR
+    #define OS216_LIBCPP_CONSTEXPR_FUNC OS216_MEMORY_PURE
+    #define OS216_LIBCPP_CONSTEXPR_VALUE const
+#else
+    #define OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR constexpr
+    #define OS216_LIBCPP_CONSTEXPR_FUNC OS216_MEMORY_PURE constexpr
+    #define OS216_LIBCPP_CONSTEXPR_VALUE constexpr
+#endif
+
 template<typename T>
 class vector{
 public:
@@ -34,7 +44,7 @@ private:
     
 public:
     
-    vector()
+    OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR vector()
       : m_upfront(0)
       , m_cap_po2(0)
       , m_size(0)

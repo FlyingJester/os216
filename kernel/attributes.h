@@ -16,6 +16,14 @@
   #endif
 #endif
 
+#ifndef OS216_COLD
+  #ifdef __GNUC__
+    #define OS216_COLD __attribute__((cold))
+  #else
+    #define OS216_COLD
+  #endif
+#endif
+
 #ifndef OS216_NORETURN
   #ifdef __GNUC__
     #define OS216_NORETURN __attribute__((noreturn,cold))
@@ -54,4 +62,26 @@
   #else
     #define OS216_WARN_UNUSED_RESULT
   #endif
+#endif
+
+#if defined __cplusplus
+    #if __cplusplus < 201103L
+        #define OS216_CONSTEXPR_CONSTRUCTOR
+        #define OS216_CONSTEXPR_FUNC OS216_MEMORY_PURE
+        #define OS216_CONSTEXPR_VALUE const
+    #else
+        #define OS216_CONSTEXPR_CONSTRUCTOR constexpr
+        #define OS216_CONSTEXPR_FUNC OS216_MEMORY_PURE constexpr
+        #define OS216_CONSTEXPR_VALUE constexpr
+    #endif
+    #if __cplusplus >= 201103L
+        #define OS216_OVERRIDE override
+        #define OS216_FINAL final
+    #elif  defined _MSC_VER && _MSC_VER >= 1700
+        #define OS216_OVERRIDE override
+        #define OS216_FINAL sealed
+    #else
+        #define OS216_OVERRIDE
+        #define OS216_FINAL
+    #endif
 #endif

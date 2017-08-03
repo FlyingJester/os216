@@ -17,13 +17,20 @@ public:
     
     struct LocationRange{
         LocationRange();
-        LocationRange(const LocationRange &other);
-        LocationRange(uintptr_t start, ptrdiff_t length);
+        OS216_CONSTEXPR_CONSTRUCTOR LocationRange(const LocationRange &other)
+          : m_start(other.m_start)
+          , m_length(other.m_length){}
+        
+        OS216_CONSTEXPR_CONSTRUCTOR LocationRange(uintptr_t start, ptrdiff_t length)
+          : m_start(start)
+          , m_length(length){}
+        
         uintptr_t m_start;
         ptrdiff_t m_length;
     };
     
-    Driver() {}
+    OS216_CONSTEXPR_CONSTRUCTOR Driver(){}
+    
     virtual ~Driver() {}
     
     virtual const LocationRange *getMemoryGrantRangeStart() const = 0;
@@ -40,7 +47,7 @@ public:
     OS216_WARN_UNUSED_RESULT bool hasIntPermission(unsigned interrupt) const;
     
     template<typename DataT>
-    void write(DataT what, void *to) const {
+    inline void write(DataT what, void *to) const {
         if(OS216_LIKELY(hasMemPermission(to, sizeof(DataT))))
             static_cast<DataT*>(to)[0] = what;
         else
@@ -48,7 +55,7 @@ public:
     }
     
     template<typename DataT>
-    OS216_WARN_UNUSED_RESULT DataT read(const void *from) const {
+    inline OS216_WARN_UNUSED_RESULT DataT read(const void *from) const {
         if(OS216_LIKELY(hasMemPermission(from, sizeof(DataT))))
             return static_cast<const DataT*>(from)[0];
         else
@@ -56,7 +63,7 @@ public:
     }
     
     template<typename DataT>
-    void out(DataT byte, uintptr_t to) const {
+    inline void out(DataT byte, uintptr_t to) const {
         if(OS216_LIKELY(hasIOPermission(to, sizeof(DataT))))
             OS216_IOOut(byte, to, sizeof(DataT));
         else
@@ -64,7 +71,7 @@ public:
     }
     
     template<typename DataT>
-    OS216_WARN_UNUSED_RESULT DataT in(uintptr_t from) const {
+    inline OS216_WARN_UNUSED_RESULT DataT in(uintptr_t from) const {
         if(OS216_LIKELY(hasIOPermission(from, sizeof(DataT))))
             return OS216_IOIn(from, sizeof(DataT));
         else
@@ -77,6 +84,9 @@ protected:
     std::vector<OS216_Device> m_devices;
 public:
     
+    OS216_CONSTEXPR_CONSTRUCTOR Bus(){}
+    virtual ~Bus(){}
+    
     virtual const OS216_Device *getDevicesStart() const { return &(m_devices[0]); }
     virtual size_t getDevicesSize() const { return m_devices.size(); }
     
@@ -87,10 +97,10 @@ public:
     
     const struct OS216_Device &m_device;
     
-    DeviceDriver(const struct OS216_Device &device)
-      : m_device(device){
-        
-    }
+    OS216_CONSTEXPR_CONSTRUCTOR DeviceDriver(const struct OS216_Device &device)
+      : m_device(device){}
+    
+    virtual ~DeviceDriver(){}
     
     virtual void onInterrupt(unsigned vec) const = 0;
     
@@ -104,21 +114,21 @@ protected:
     std::vector<unsigned> m_interrupt_vectors;
 public:
     
-    UserDriver(const struct OS216_Device &device)
+    OS216_CONSTEXPR_CONSTRUCTOR UserDriver(const struct OS216_Device &device)
       : DeviceDriver(device){
         
     }
     
     virtual ~UserDriver() {}
     
-    virtual const LocationRange *getMemoryGrantRangeStart() const;
-    virtual size_t getMemoryGrantRangeSize() const;
+    virtual const LocationRange *getMemoryGrantRangeStart() const OS216_OVERRIDE;
+    virtual size_t getMemoryGrantRangeSize() const OS216_OVERRIDE;
     
-    virtual const LocationRange *getIOPortGrantRangeStart() const;
-    virtual size_t getIOPortGrantRangeSize() const;
+    virtual const LocationRange *getIOPortGrantRangeStart() const OS216_OVERRIDE;
+    virtual size_t getIOPortGrantRangeSize() const OS216_OVERRIDE;
     
-    virtual const unsigned *getInterruptGrantRangeStart() const;
-    virtual size_t getInterruptGrantRangeSize() const;
+    virtual const unsigned *getInterruptGrantRangeStart() const OS216_OVERRIDE;
+    virtual size_t getInterruptGrantRangeSize() const OS216_OVERRIDE;
     
     void addIOPortGrant(const LocationRange& iop);
     void addIOPortGrant(uintptr_t start, ptrdiff_t length);

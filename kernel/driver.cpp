@@ -9,23 +9,11 @@ Driver::LocationRange::LocationRange()
   , m_length(0){
     
 }
-Driver::LocationRange::LocationRange(const LocationRange &other)
-  : m_start(other.m_start)
-  , m_length(other.m_length){
-    
-}
-
-Driver::LocationRange::LocationRange(uintptr_t start, ptrdiff_t length)
-  : m_start(start)
-  , m_length(length){
-    
-}
-
 
 bool Driver::hasIOPermission(uintptr_t io_port, unsigned size) const {
     const Driver::LocationRange *const ranges = getIOPortGrantRangeStart();
     const size_t count = getIOPortGrantRangeSize();
-    for(size_t i = 0; i < count; i++){
+    for(size_t i = 0; OS216_LIKELY(i < count); i++){
         const uintptr_t start = ranges[i].m_start;
         if(start >= io_port && io_port - start <= ranges[i].m_length - size)
             return true;
@@ -37,7 +25,7 @@ bool Driver::hasMemPermission(const void *addr, unsigned size) const{
     const Driver::LocationRange *const ranges = getMemoryGrantRangeStart();
     const size_t count = getMemoryGrantRangeSize();
     const uintptr_t addr_i = (uintptr_t)addr;
-    for(size_t i = 0; i < count; i++){
+    for(size_t i = 0; OS216_LIKELY(i < count); i++){
         const uintptr_t start = ranges[i].m_start;
         if(start >= addr_i && addr_i - start <= ranges[i].m_length - size)
             return true;
@@ -48,7 +36,7 @@ bool Driver::hasMemPermission(const void *addr, unsigned size) const{
 bool Driver::hasIntPermission(unsigned interrupt) const {
     const unsigned *const interrupts = getInterruptGrantRangeStart();
     const size_t count = getInterruptGrantRangeSize();
-    for(size_t i = 0; i < count; i++){
+    for(size_t i = 0; OS216_LIKELY(i < count); i++){
         if(interrupts[i] == interrupt)
             return true;
     }
