@@ -46,6 +46,7 @@ PCIBus::PCIBus(){
     #pragma GCC diagnostic ignored "-Wunused-variable"
     // Enumerate the bus. This is done by reading in device info until we get an initial read of
     // a vender of 0xFFFF
+    OS216_Newline();
     for(unsigned bus_num = 0; bus_num < os216_max_bus_number; bus_num++){
         for(unsigned dev_num = 0; dev_num < os216_max_device_number; dev_num++){
             uint32_t registers[16];
@@ -101,6 +102,20 @@ PCIBus::PCIBus(){
                 min_grant = (registers[15] >> 8) & 0xFF,
                 interrupt_pin = (registers[15] >> 16) & 0xFF,
                 interrupt_line = (registers[15] >> 24) & 0xFF;
+            
+            OS216_PrintString("PCI Device: ");
+            OS216_PrintInteger(bus_num);
+            OS216_PrintChar(':');
+            OS216_PrintInteger(dev_num);
+            OS216_PrintString(" \tVendor: ");
+            OS216_PrintInteger(vendor);
+            OS216_PrintString(" \tID: ");
+            OS216_PrintInteger(device_id);
+            OS216_PrintString(" \tClass: ");
+            OS216_PrintInteger(class_code);
+            OS216_PrintString(" \tSubclass: ");
+            OS216_PrintInteger(subclass);
+            OS216_Newline();
         }
     }
     #pragma GCC diagnostic pop
