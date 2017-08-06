@@ -25,6 +25,7 @@ extern __cxa_finalize
 extern _init
 extern _fini
 extern OS216_Main
+extern OS216_Serial_Init
 
 global _OS216_AsmMain
 _OS216_AsmMain:
@@ -32,7 +33,7 @@ _OS216_AsmMain:
     mov esp, stack_top
     
     call _init
-    
+    call OS216_Serial_Init
     call OS216_Main
     
 ;    mov eax, 0

@@ -1,6 +1,7 @@
 #include "../platform/print.h"
 #include "../platform/fatal.h"
 #include "vga.h"
+#include "serial.h"
 
 #include <stdint.h>
 
@@ -9,6 +10,12 @@
  * FATAL funcs are correct enough to use the right mode, otherwise we could
  * infinite loop.
  */
+
+#define OS216_WRITE_STRING(X, Y, MODE, LEN, MSG)\
+    do{\
+        OS216_Serial_PutString(LEN, MSG);\
+        OS216_VGA_PutString(X, Y, MODE, LEN, MSG);\
+    } while(0);
 
 static unsigned os216_print_x = 0, os216_print_y = 0;
 
@@ -58,7 +65,7 @@ void OS216_PC_PrintString(enum OS216_PC_PrintMode mode, const char *msg){
                 if(os216_print_x + word_len > os216_vga_w)
                     OS216_Newline();
                 
-                OS216_VGA_PutString(os216_print_x, os216_print_y,
+                OS216_WRITE_STRING(os216_print_x, os216_print_y,
                     mode, word_len, msg);
                 
                 os216_print_x += word_len;
@@ -80,6 +87,7 @@ void OS216_PC_PrintString(enum OS216_PC_PrintMode mode, const char *msg){
             if(os216_print_x >= os216_vga_w) {}
             else if(*msg == ' '){
                 OS216_VGA_Clear(os216_print_x, os216_print_y, mode, 1);
+                OS216_Serial_PutString(1, msg);
                 os216_print_x++;
             }
             else if(*msg == '\t'){
@@ -101,7 +109,7 @@ void OS216_PC_PrintString(enum OS216_PC_PrintMode mode, const char *msg){
         else if(word_len >= os216_vga_w)
             OS216_PC_Newline(mode);
         
-        OS216_VGA_PutString(os216_print_x, os216_print_y, mode, word_len, msg);
+        OS216_WRITE_STRING(os216_print_x, os216_print_y, mode, word_len, msg);
         os216_print_x += word_len;
         msg+=word_len;
     }
@@ -121,6 +129,10 @@ void OS216_PC_Newline(enum OS216_PC_PrintMode mode){
         os216_print_y = 0;
     OS216_VGA_ClearLine(os216_print_y, mode);
     
+    {
+        const char nl = '\n';
+        OS216_Serial_PutString(1, &nl);
+    }
 }
 
 void OS216_PC_NewScreen(enum OS216_PC_PrintMode mode){
@@ -150,7 +162,7 @@ void OS216_PC_PrintChar(enum OS216_PC_PrintMode mode, char c){
         case '\t':
             while(os216_print_x < os216_vga_w && (os216_print_x & 2)){
                 const char space = ' ';
-                OS216_VGA_PutString(os216_print_x++, os216_print_y, mode, 1, &space);
+                OS216_WRITE_STRING(os216_print_x++, os216_print_y, mode, 1, &space);
             }
             break;
         default:
@@ -162,7 +174,7 @@ void OS216_PC_PrintChar(enum OS216_PC_PrintMode mode, char c){
                 os216_print_x = os216_vga_w;
                 OS216_PC_Newline(mode);
             }
-            OS216_VGA_PutString(os216_print_x++, os216_print_y, mode, 1, &c);
+            OS216_WRITE_STRING(os216_print_x++, os216_print_y, mode, 1, &c);
             break;
     }
 }
@@ -196,7 +208,7 @@ void OS216_PC_PrintInteger(enum OS216_PC_PrintMode mode, int n){
     
     {
         const char *const str = buffer + (sizeof(buffer) - i);
-        OS216_VGA_PutString(os216_print_x, os216_print_y, mode, i, str);
+        OS216_WRITE_STRING(os216_print_x, os216_print_y, mode, i, str);
         os216_print_x += i;
     }
 }
@@ -221,6 +233,6 @@ void OS216_PC_PrintAddress(enum OS216_PC_PrintMode mode, void *p){
     if(sizeof(buffer) + os216_print_x >= os216_vga_w)
         OS216_Newline();
     
-    OS216_VGA_PutString(os216_print_x, os216_print_y, mode, sizeof(buffer), buffer);
+    OS216_WRITE_STRING(os216_print_x, os216_print_y, mode, sizeof(buffer), buffer);
     os216_print_x += sizeof(buffer);
 }
