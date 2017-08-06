@@ -41,8 +41,11 @@ void OS216_Main(){
     OS216_InitSegmentation();
     OS216_InitKernelMemory();
     OS216_InitInterrupts();
-    
     OS216_ClearScreen();
+    
+    std::vector<BusPointer> buses;
+    EnumerateBuses(buses);
+    
     OS216_PrintString("\tOS 216 version 0.01\n    Copyright (c) 2016-2017 Martin McDonough\n\n");
     OS216_PrintString(license_text1);
     OS216_Newline();
@@ -52,8 +55,6 @@ void OS216_Main(){
     OS216_Newline();
     OS216_PrintString(license_text3);
     
-    std::vector<BusPointer> buses;
-    EnumerateBuses(buses);
 }
 
 } // namespace os216

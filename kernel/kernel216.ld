@@ -10,11 +10,13 @@ SECTIONS{
     
     .init BLOCK(4K) : ALIGN(4K){
         *(.init)
+        *(.other_init)
         crtend.o(.text)
     }
     
     .fini BLOCK(4K) : ALIGN(4K){
         *(.fini)
+        *(.other_fini)
         crtbegin.o(.text)
     }
 
