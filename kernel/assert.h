@@ -10,5 +10,8 @@
         #define OS216_ASSERT(X, MSG) ((void)X)
     #endif
 #else
-    #define OS216_ASSERT(X, MSG) do{ if(OS216_LIKELY(X)){} else{ OS216_FATAL(MSG); } } while(0)
+    #define OS216_ASSERT(X, MSG) do{ if(OS216_LIKELY(X)){} else{\
+        const char *const _msg_ = MSG;\
+        OS216_FATAL(_msg_ ? _msg_ : (#X) );\
+    } } while(0)
 #endif

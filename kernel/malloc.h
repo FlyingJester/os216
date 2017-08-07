@@ -3,6 +3,7 @@
 #define OS216_MALLOC_H
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "attributes.h"
 

@@ -1,8 +1,12 @@
 
 TSS_LEN equ 4096
+PAGE_SIZE equ 4096
 
 section .text
 align 4
+
+extern OS216_AllocateRegion
+extern OS216_FreeRegion
 
 struc OS216_GDTEntry
     gdt_entry_limit resb 2
@@ -62,6 +66,53 @@ OS216_InitSegmentation:
     popf
     ret
 
+global OS216_GetPageSize
+OS216_GetPageSize:
+    mov eax, PAGE_SIZE
+    ret
+
+; struct OS216_VMDirectory *OS216_CreateNewVMDirectory(void);
+global OS216_CreateNewVMDirectory
+OS216_CreateNewVMDirectory:
+    ; Get a physical page to put the directory into.
+    push edi
+    push DWORD 0
+    push PAGE_SIZE
+    call OS216_AllocateRegion
+    
+    ; [eax] is the address, [eax+4] is the size (unneeded)
+    ; Set up the directory to be empty except for the last table (which points
+    ; to the directory again).
+    ;                              GSADWURP
+    ; 0b00000000,00000000,00000000,00000000
+    push eax
+    mov edi, eax
+    mov ecx, 1023
+    
+    mov eax, 0
+    rep stosd
+    
+    ; Set the last entry to be the table itself.
+    pop eax
+    mov [eax+PAGE_SIZE-4], eax
+    
+    add esp, 8
+    pop edi
+    ret
+
+global OS216_DestroyVMDirectory
+OS216_DestroyVMDirectory:
+    jmp OS216_FreeRegion
+
+; void OS216_SetVMDirectory(struct OS216_VMDirectory *);
+global OS216_SetVMDirectory
+OS216_SetVMDirectory:
+
+global OS216_GetMappableStart
+OS216_GetMappableStart:
+    mov eax, os216_memory_end
+    ret
+
 section .data
 align 4
 
@@ -94,3 +145,6 @@ os216_gdt:
 ; TSS area
 os216_start_tss:
 times TSS_LEN db 0
+
+section .ending
+    os216_memory_end: dd 1

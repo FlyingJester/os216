@@ -56,6 +56,14 @@
   #endif
 #endif
 
+#ifndef OS216_NOT_NULL
+  #ifdef __GNUC__
+    #define OS216_NOT_NULL __attribute__((returns_nonnull))
+  #else
+    #define OS216_NOT_NULL
+  #endif
+#endif
+
 #ifndef OS216_WARN_UNUSED_RESULT
   #ifdef __GNUC__
     #define OS216_WARN_UNUSED_RESULT __attribute__((warn_unused_result))
