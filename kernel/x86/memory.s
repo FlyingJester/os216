@@ -5,6 +5,8 @@ PAGE_SIZE equ 4096
 section .text
 align 4
 
+extern OS216_LockRegionAllocator
+extern OS216_UnlockRegionAllocator
 extern OS216_AllocateRegion
 extern OS216_FreeRegion
 
@@ -66,18 +68,44 @@ OS216_InitSegmentation:
     popf
     ret
 
-global OS216_GetPageSize
-OS216_GetPageSize:
+global OS216_VM_Enable
+OS216_VM_Enable:
+    mov eax, cr0
+    or eax, 0x80000001
+    mov cr0, eax
+    ret
+
+global OS216_VM_GetPageSize
+OS216_VM_GetPageSize:
     mov eax, PAGE_SIZE
     ret
 
-; struct OS216_VMDirectory *OS216_CreateNewVMDirectory(void);
-global OS216_CreateNewVMDirectory
-OS216_CreateNewVMDirectory:
+global OS216_VM_CreateNewVMDirectory
+OS216_VM_CreateNewVMDirectory:
     ; Get a physical page to put the directory into.
     push edi
     push DWORD 0
     push PAGE_SIZE
+    
+    call OS216_LockRegionAllocator
+    
+    cmp DWORD [os216_identity_memory_map], 0
+    jne os216_identity_memory_map_ready
+    
+    call OS216_AllocateRegion
+    mov eax, [eax]
+    mov [os216_identity_memory_map], eax
+    
+    mov ecx, 3
+    xor edi, edi
+os216_fill_table_iter:
+    mov DWORD [eax+(edi*4)], ecx
+    add ecx, 1<<12
+    inc edi
+    cmp edi, 1024
+    jl os216_fill_table_iter
+
+os216_identity_memory_map_ready:
     call OS216_AllocateRegion
     
     ; [eax] is the address, [eax+4] is the size (unneeded)
@@ -85,32 +113,70 @@ OS216_CreateNewVMDirectory:
     ; to the directory again).
     ;                              GSADWURP
     ; 0b00000000,00000000,00000000,00000000
+    mov eax, [eax]
     push eax
+    
+    call OS216_UnlockRegionAllocator
+    
+    ; If paging is set up, we need to map the page directory into the current address space. The
+    ; second to last table in the directory is reserved for this.
     mov edi, eax
-    mov ecx, 1023
+    mov eax, cr0
+    mov ecx, eax
+    or ecx, 0x80000001
+    cmp ecx, eax
+    jne os216_paging_is_not_setup
+    ; Map the new page directory into the 1022nd page table in the current directory, and then put
+    ; that address into edi.
+    or edi, 3
+    mov [0xFFFFFFF7], edi
+    
+    mov edi, 0xFFFFE000
+    
+os216_paging_is_not_setup:
+    mov ecx, 1024
     
     mov eax, 0
     rep stosd
     
-    ; Set the last entry to be the table itself.
     pop eax
-    mov [eax+PAGE_SIZE-4], eax
+    ; Set up identity mapping for the kernel and the lower memory map.
+    mov ecx, [os216_identity_memory_map]
+    mov DWORD [eax], ecx
+    or  DWORD [eax], 3
+    ; Set the last entry to be the table itself.
+    mov DWORD [eax+PAGE_SIZE-4], eax
+    or  DWORD [eax+PAGE_SIZE-4], 3
     
     add esp, 8
     pop edi
     ret
 
-global OS216_DestroyVMDirectory
-OS216_DestroyVMDirectory:
-    jmp OS216_FreeRegion
+global OS216_VM_DestroyVMDirectory
+OS216_VM_DestroyVMDirectory:
+    call OS216_LockRegionAllocator
+    call OS216_FreeRegion
+    jmp OS216_UnlockRegionAllocator
 
 ; void OS216_SetVMDirectory(struct OS216_VMDirectory *);
-global OS216_SetVMDirectory
-OS216_SetVMDirectory:
+global OS216_VM_SetVMDirectory
+OS216_VM_SetVMDirectory:
+    mov eax, [esp+4]
+    mov cr3, eax
+    ret
 
-global OS216_GetMappableStart
-OS216_GetMappableStart:
-    mov eax, os216_memory_end
+global OS216_VM_GetMappableStart
+OS216_VM_GetMappableStart:
+    mov eax, 4190208
+    ret
+
+global OS216_VM_Initialize
+OS216_VM_Initialize:
+    call OS216_VM_CreateNewVMDirectory
+    push eax
+    call OS216_VM_SetVMDirectory
+    call OS216_VM_Enable
+    add esp, 4
     ret
 
 section .data
@@ -146,5 +212,5 @@ os216_gdt:
 os216_start_tss:
 times TSS_LEN db 0
 
-section .ending
-    os216_memory_end: dd 1
+global os216_identity_memory_map
+os216_identity_memory_map: dw 0

@@ -38,7 +38,7 @@ cpp.o: cpp.cpp cpp.hpp cpp.hpp.gch
 malloc.o: malloc.c platform/fatal.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c malloc.c -o malloc.o
 
-physical_memory.o: physical_memory.c physical_memory.h assert.h platform/fatal.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
+physical_memory.o: physical_memory.c physical_memory.h assert.h platform/fatal.h arch/memory.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c physical_memory.c -o physical_memory.o
 
 driver_interrupt.o: driver_interrupt.cpp driver_interrupt.h driver.hpp $(CXX_PRECOMPILED_HEADER)
@@ -59,7 +59,7 @@ schedule.o: schedule.cpp schedule.hpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS
 syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 	$(CXX) $(CXXFLAGS) -c syscall.cpp -o syscall.o
 
-kernel.o: kernel.cpp driver.hpp platform/bus.hpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
+kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
 
 CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`

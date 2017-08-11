@@ -13,6 +13,7 @@ extern "C" {
 #endif
 
 struct OS216_PageRegion;
+
 struct OS216_PageRegionInfo{
     uint8_t *start; /* Linear address */
     unsigned short num_pages;

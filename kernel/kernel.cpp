@@ -1,5 +1,6 @@
 #include "cpp.hpp"
 #include "malloc.h"
+#include "assert.h"
 #include <cstring>
 
 #include "platform/print.h"
@@ -56,6 +57,7 @@ void OS216_Main(){
     OS216_Newline();
     OS216_PrintString(license_text3);
     
+    OS216_VM_Initialize();
 }
 
 } // namespace os216

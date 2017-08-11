@@ -6,10 +6,12 @@
 #include "physical_memory.h"
 
 struct OS216_PageRegion{
-    bool alloced, mapped; /* Large is unused. */
     struct OS216_PageRegionInfo info;
+    bool alloced, mapped; /* Large is unused. */
     struct OS216_PageRegion *next;
-} *regions = NULL;
+};
+
+static struct OS216_PageRegion *physical_regions = NULL;
 
 void OS216_LockRegionAllocator(){
     /* TODO: When we get SMP! */
@@ -22,7 +24,7 @@ void OS216_UnlockRegionAllocator(){
 struct OS216_PageRegion *OS216_AllocateRegion(unsigned min_length,
     struct OS216_PageRegion *hint){
     
-    const unsigned page_size = OS216_GetPageSize();
+    const unsigned page_size = OS216_VM_GetPageSize();
     
     /* If it didn't divide evenly add one extra page. */
     const unsigned num_pages = (min_length / page_size) +
@@ -32,28 +34,33 @@ struct OS216_PageRegion *OS216_AllocateRegion(unsigned min_length,
     OS216_ASSERT(num_pages > 0, NULL);
     
     /* Initialize the physical memory region list if needed. */
-    if(OS216_UNLIKELY(regions == NULL)){
+    if(OS216_UNLIKELY(physical_regions == NULL)){
+        struct OS216_PageRegion *const region =
+            malloc(sizeof(struct OS216_PageRegion));
+        struct OS216_PageRegion *const next =
+            malloc(sizeof(struct OS216_PageRegion));
         OS216_ASSERT(hint == NULL, "Invalid hint at initialization");
-        regions = malloc(sizeof(struct OS216_PageRegion));
-        regions->alloced = true;
-        regions->mapped = false;
-        regions->info.start = OS216_GetMappableStart();
-        regions->info.num_pages = num_pages;
+        OS216_ASSERT(next != (void*)0x3003, "WTF Even Is This?");
+        physical_regions = region;
+        
+        region->alloced = true;
+        region->mapped = false;
+        region->info.start = OS216_VM_GetMappableStart();
+        region->info.num_pages = num_pages;
         
         /* The last region is the free space. */
-        regions->next = malloc(sizeof(struct OS216_PageRegion));
+        region->next = next;
         
-        regions->next->alloced = false;
-        regions->next->mapped = false;
-        regions->next->info.start =
-            regions->info.start + (num_pages * page_size);
-        regions->next->info.num_pages =
-            ((uint8_t*)0xFFFFFFFF - regions->next->info.start) / page_size;
-        return regions;
+        next->alloced = false;
+        next->mapped = false;
+        next->info.start = region->info.start + (num_pages * page_size);
+        next->info.num_pages =
+            ((uint8_t*)0xFFFFFFFF - next->info.start) / page_size;
+        return region;
     }
     else{
         /* Find the first open region we can use or split. */
-        struct OS216_PageRegion *cur_region = hint ? hint : regions;
+        struct OS216_PageRegion *cur_region = hint ? hint : physical_regions;
         /* Only mapped pages should escape */
         OS216_ASSERT(hint == NULL || hint->alloced == true, "Invalid hint");
         OS216_ASSERT(cur_region != NULL, "Invalid region base");
@@ -87,13 +94,13 @@ struct OS216_PageRegion *OS216_AllocateRegion(unsigned min_length,
             return cur_region;
         }while(OS216_LIKELY(cur_region = cur_region->next));
         
-        if(hint != NULL && hint != regions)
+        if(hint != NULL && hint != physical_regions)
             return OS216_AllocateRegion(min_length, NULL);
         
         OS216_FATAL("Out of physical memory!");
     }
 }
-
+ 
 struct OS216_PageRegionInfo *OS216_GetPageRegionInfo(
     struct OS216_PageRegion *region){
     return &region->info;

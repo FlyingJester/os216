@@ -37,5 +37,4 @@ SECTIONS{
         *(.bss)
         *(.bootstrap_stack)
     }
-    
 }
