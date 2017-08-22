@@ -32,7 +32,7 @@ void OS216_MapPhysicalMemory(struct OS216_PageRegion *phys, void *virt);
 
 void OS216_FreeRegion(struct OS216_PageRegion *handle);
 
-OS216_NOT_NULL struct OS216_PageRegionInfo *OS216_GetPageRegionInfo(
+OS216_PURE struct OS216_PageRegionInfo *OS216_GetPageRegionInfo(
     struct OS216_PageRegion *region);
 
 #ifdef __cplusplus

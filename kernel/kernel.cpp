@@ -43,6 +43,8 @@ void OS216_Main(){
     OS216_InitKernelMemory();
     OS216_InitInterrupts();
     
+    OS216_VM_Initialize();
+    
     std::vector<BusPointer> buses;
     EnumerateBuses(buses);
     
@@ -56,8 +58,6 @@ void OS216_Main(){
     OS216_Newline();
     OS216_Newline();
     OS216_PrintString(license_text3);
-    
-    OS216_VM_Initialize();
 }
 
 } // namespace os216

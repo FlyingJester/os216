@@ -1,7 +1,7 @@
 section .text
 align 4
 
-NUM_SYSCALLS equ 3
+NUM_SYSCALLS equ 4
 
 extern OS216_Fatal
 extern OS216_SysCall
@@ -20,6 +20,9 @@ OS216_Int_Syscall:
     cld
     ; EAX was already pushed.
     mov eax, [esp]
+    cmp eax, NUM_SYSCALLS
+    jle syscall_0_args
+    
     movzx eax, BYTE [num_syscall_args+eax]
     cmp eax, 1
     jl syscall_0_args
@@ -28,7 +31,7 @@ OS216_Int_Syscall:
     cmp eax, 3
     jl syscall_2_args
     je syscall_3_args
-    
+
 not_ud2:
     pushad
     push invalid_opcode_string
@@ -92,7 +95,7 @@ section .data
 align 4
 
 num_syscall_args:
-    db 0,1,3
+    db 0,1,3,0
 
 invalid_opcode_string:
     db 'Invalid Opcode', 0

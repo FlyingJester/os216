@@ -5,10 +5,13 @@ LIBARCH=lib216arch.a
 
 all: $(LIBARCH)
 
-OBJECTS=interrupt.o memory.o init.o 8259pic.o io.o syscall.o
+OBJECTS=interrupt.o memory.o init.o 8259pic.o io.o syscall.o cpu_state.o
 
 $(LIBARCH): $(OBJECTS)
 	$(AR) rc $(LIBARCH) $(OBJECTS)
+
+cpu_state.o: cpu_state.s
+	$(AS) $(ASFLAGS) cpu_state.s -o cpu_state.o
 
 interrupt.o: interrupt.s
 	$(AS) $(ASFLAGS) interrupt.s -o interrupt.o

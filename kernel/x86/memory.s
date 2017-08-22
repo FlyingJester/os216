@@ -152,6 +152,33 @@ os216_paging_is_not_setup:
     pop edi
     ret
 
+; void *OS216_VM_MapPage(void *physical, void *dest);
+global OS216_VM_MapPage
+OS216_VM_MapPage:
+    mov eax, [esp+8]
+    mov ecx, eax
+    shr ecx, 12
+    and ecx, 0x03FF
+    
+    shr eax, 22
+    mov edx, 0x400
+    
+    ; EAX now contains our page table
+    mul edx
+    lea edx, [0xFFC00000 + (ecx * 4)]
+    add eax, edx
+    
+    ; Load the flags | physaddr
+    mov ecx, [esp+4]
+    or ecx, 3
+    
+    mov [eax], ecx
+
+    ; TODO: Just invalidate that last page
+    mov eax, cr3
+    mov cr3, eax
+    ret
+
 global OS216_VM_DestroyVMDirectory
 OS216_VM_DestroyVMDirectory:
     call OS216_LockRegionAllocator
@@ -163,6 +190,11 @@ global OS216_VM_SetVMDirectory
 OS216_VM_SetVMDirectory:
     mov eax, [esp+4]
     mov cr3, eax
+    ret
+
+global OS216_VM_GetVMDirectory
+OS216_VM_GetVMDirectory:
+    mov eax, cr3
     ret
 
 global OS216_VM_GetMappableStart

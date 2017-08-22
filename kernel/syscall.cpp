@@ -34,6 +34,9 @@ void OS216_SysCall(unsigned arg0, ...){
             }
             OS216_FATAL("mprotect syscall");
             break;
+        case 3:
+            OS216_FATAL("die syscall");
+            break;
     }
     
     va_end(args);

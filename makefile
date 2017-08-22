@@ -4,8 +4,12 @@ all: kernel
 ROOT=${PWD}
 
 .include "platform.mk"
+.include "216.mk"
 
 kernel: libc linker
+
+liborl:
+	$(MAKE) -C liborl
 
 libc:
 	$(MAKE) -C libc MODE216="kernel" ROOT=${ROOT} ${PARALLEL}

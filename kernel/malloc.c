@@ -206,6 +206,20 @@ OS216_MALLOC_ATTR void *calloc(size_t count, size_t amount){
     return data;
 }
 
+OS216_MEMORY_PURE unsigned is_small(const void *mem);
+unsigned is_small(const void *mem){
+    const uintptr_t small_heap_start = (uintptr_t)OS216_KernelSmallHeap,
+        small_heap_end = small_heap_start + sizeof(OS216_KernelSmallHeap);
+    return ((uintptr_t)mem >= small_heap_start && (uintptr_t)mem <= small_heap_end);
+}
+
+OS216_MEMORY_PURE unsigned is_large(const void *mem);
+unsigned is_large(const void *mem){
+    const uintptr_t large_heap_start = (uintptr_t)OS216_KernelLargeHeap,
+        large_heap_end = large_heap_start + sizeof(OS216_KernelLargeHeap);
+    return ((uintptr_t)mem >= large_heap_start && (uintptr_t)mem <= large_heap_end);
+}
+
 void *realloc(void *mem, size_t new_amount){
     (void)mem;
     (void)new_amount;
@@ -281,19 +295,14 @@ static void large_free(void *mem){
 }
 
 void free(void *mem){
-    const uintptr_t mem_i = (size_t)mem,
-        large_heap_start = (size_t)OS216_KernelLargeHeap,
-        large_heap_end = large_heap_start + sizeof(OS216_KernelLargeHeap),
-        small_heap_start = (uintptr_t)OS216_KernelSmallHeap,
-        small_heap_end = small_heap_start + sizeof(OS216_KernelSmallHeap);
-    if(mem_i == 0){
+    if(mem == (void*)0){
         return;
     }
-    else if(mem_i >= large_heap_start && mem_i <= large_heap_end){
-        large_free(mem);
-    }
-    else if(mem_i >= small_heap_start && mem_i <= small_heap_end){
+    else if(is_small(mem)){
         small_free(mem);
+    }
+    else if(OS216_LIKELY(is_large(mem))){
+        large_free(mem);
     }
     else{
         OS216_FATAL("Memory is not in the small or large kernel heap.");
