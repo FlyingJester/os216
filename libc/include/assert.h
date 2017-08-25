@@ -24,11 +24,14 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef OS216_STDLIB_CTYPE_H
-#define OS216_STDLIB_CTYPE_H
+#ifndef OS216_STDLIB_ASSERT_H
+#define OS216_STDLIB_ASSERT_H
 #pragma once
 
-int tolower(int c);
-int toupper(int c);
+#ifdef NDEBUG
+#define assert(_)
+#else
+#define assert(_) (void)(_)
+#endif
 
 #endif /* OS216_STDLIB_CTYPE_H */

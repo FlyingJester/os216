@@ -197,3 +197,37 @@ void *memset(void *dest, uint8_t val, size_t n){
 
     return dest;
 }
+
+/*****************************************************************************/
+
+void *memchr(const void *ptr, int val, size_t n){
+    size_t i = 0;
+    while(i < n){
+        uint8_t *const at = ((uint8_t*)ptr) + i;
+        if(*at == val)
+            return at;
+        i++;
+    }
+    return (void*)0;
+}
+
+/*****************************************************************************/
+
+int memcmp(const void *__restrict__ av, const void *__restrict__ bv, size_t n){
+    int c;
+    size_t i = 0;
+    const uint8_t *const a = av, *const b = bv;
+    
+    if(n == 0)
+        return 0;
+    
+    do{
+        const int ac = a[i], bc = b[i];
+        i++;
+        c = ac - bc;
+    }while(i < n && c != 0);
+    
+    return c;
+}
+
+/*****************************************************************************/

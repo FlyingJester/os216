@@ -1,7 +1,6 @@
 
 LIBC=lib216c.a
-OBJECTS=string.o
-#stdlib.o ctype.o
+OBJECTS=string.o stdio.o ctype.o
 
 all: $(LIBC) crti.o crtn.o
 
@@ -27,6 +26,9 @@ $(LIBC): $(OBJECTS)
 
 stdlib.o: stdlib.c include/stdlib.h
 	$(CC) $(CFLAGS) -c stdlib.c -o stdlib.o
+
+stdio.o: stdio.c include/stdio.h
+	$(CC) $(CFLAGS) -c stdio.c -o stdio.o
 
 string.o: string.c include/string.h
 	$(CC) $(CFLAGS) -c string.c -o string.o

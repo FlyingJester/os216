@@ -24,11 +24,14 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef OS216_STDLIB_CTYPE_H
-#define OS216_STDLIB_CTYPE_H
 #pragma once
+#ifndef OS216_STDLIB_CCTYPE
+#define OS216_STDLIB_CCTYPE
 
-int tolower(int c);
-int toupper(int c);
+#ifndef __cplusplus
+#error This header requires C++
+#endif
 
-#endif /* OS216_STDLIB_CTYPE_H */
+#include "ctype.h"
+
+#endif // OS216_STDLIB_CCTYPE

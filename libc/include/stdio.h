@@ -24,11 +24,32 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef OS216_STDLIB_CTYPE_H
-#define OS216_STDLIB_CTYPE_H
+#ifndef OS216_STDLIB_STDIO_H
+#define OS216_STDLIB_STDIO_H
 #pragma once
 
-int tolower(int c);
-int toupper(int c);
+#include <stdarg.h>
+#include <stdint.h>
+#include <stddef.h>
 
-#endif /* OS216_STDLIB_CTYPE_H */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum {
+    SEEK_SET,
+    SEEK_CUR,
+    SEEK_END
+};
+
+int sprintf(char *buffer, const char *format, ...);
+int vsprintf(char *buffer, const char *format, va_list args);
+
+int snprintf(char *buffer, size_t n, const char *format, ...);
+int vsnprintf(char *buffer, size_t n, const char *format, va_list args);
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+#endif /* LIBORL_SUPPLIEMENT_STDIO_H */
