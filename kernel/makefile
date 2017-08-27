@@ -1,3 +1,5 @@
+# Any copyright of this file is dedicated to the Public Domain.
+# http://creativecommons.org/publicdomain/zero/1.0/
 
 .include "../216.mk"
 
@@ -20,14 +22,14 @@ LIBARCH=$(ARCH)/lib216arch.a
 $(LIBPLATFORM): buildplatform
 
 buildplatform:
-	$(MAKE) -C $(PLATFORM) ${PARALLEL}
+	$(MAKE) -C $(PLATFORM) ${PARALLEL} ROOT=${ROOT}
 
 $(LIBARCH): buildarch
 
 buildarch:
-	$(MAKE) -C $(ARCH) ${PARALLEL}
+	$(MAKE) -C $(ARCH) ${PARALLEL} ROOT=${ROOT}
 
-OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o kernel.o syscall.o physical_memory.o a.out.o
+OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o kernel.o syscall.o physical_memory.o
 
 COMMON_HEADERS=platform/fatal.h platform/print.h attributes.h
 
@@ -37,9 +39,6 @@ cpp.o: cpp.cpp cpp.hpp cpp.hpp.gch
 
 malloc.o: malloc.c platform/fatal.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c malloc.c -o malloc.o
-
-a.out.o: a.out.c a.out.h physical_memory.h arch/memory.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
-	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c a.out.c -o a.out.o
 
 physical_memory.o: physical_memory.c physical_memory.h assert.h platform/fatal.h arch/memory.h $(C_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CC) $(CFLAGS) $(MALLOC_OBJ_FLAGS) -c physical_memory.c -o physical_memory.o

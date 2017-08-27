@@ -1,25 +1,76 @@
+/* 
+ *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 
+ * - Products derived from this software may not be called "os216", nor may
+ *     "216" appear in their name, without prior written permission of
+ *     the copyright holders.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 #include "pci.hpp"
+
 #include "../platform/print.h"
 #include "../assert.h"
 
+/*****************************************************************************/
 // This file contains the logic to enumerate the PCI bus. The utilities to do this (including class
 // codes and functional types) is in pci_utils. The IO abstraction is provided by the driver class.
 
 namespace os216 {
 
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uintptr_t pci_config_address_port = 0x0CF8;
+
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uintptr_t pci_config_data_port = 0x0CFC;
 
+/*****************************************************************************/
+
 #define OS216_PCI_NUM_PCI_IO_PORTS 2
+
+/*****************************************************************************/
+
 OS216_CONSTEXPR_VALUE Driver::LocationRange pci_io_location[OS216_PCI_NUM_PCI_IO_PORTS] = {
     Driver::LocationRange(pci_config_address_port, 4),
     Driver::LocationRange(pci_config_data_port, 4)
 };
 
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uint32_t os216_max_bus_number = 0x7F;
+
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uint32_t os216_max_device_number = 0x1F;
+
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uint32_t os216_max_function_number = 0x07;
+
+/*****************************************************************************/
+
 static OS216_CONSTEXPR_VALUE uint32_t os216_max_register_number = 0x3F;
+
+/*****************************************************************************/
 
 static inline uint32_t os216_construct_pci_data(
     uint32_t bus_num,
@@ -40,10 +91,15 @@ static inline uint32_t os216_construct_pci_data(
         (reg_num << 2);
 }
 
+/*****************************************************************************/
+
 PCIBus::PCIBus(){
-    
+
+#ifdef __GNUC__
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunused-variable"
+#endif
+
     // Enumerate the bus. This is done by reading in device info until we get an initial read of
     // a vender of 0xFFFF
     OS216_Newline();
@@ -121,20 +177,30 @@ PCIBus::PCIBus(){
     #pragma GCC diagnostic pop
 }
 
+/*****************************************************************************/
+
 const Driver::LocationRange *PCIBus::getIOPortGrantRangeStart() const {
     return pci_io_location;
 }
+
+/*****************************************************************************/
 
 size_t PCIBus::getIOPortGrantRangeSize() const {
     return OS216_PCI_NUM_PCI_IO_PORTS;
 }
 
+/*****************************************************************************/
+
 const unsigned *PCIBus::getInterruptGrantRangeStart() const {
     return NULL;
 }
 
+/*****************************************************************************/
+
 size_t PCIBus::getInterruptGrantRangeSize() const {
     return 0;
 }
+
+/*****************************************************************************/
 
 } // namespace os216

@@ -1,3 +1,5 @@
+# Any copyright of this file is dedicated to the Public Domain.
+# http://creativecommons.org/publicdomain/zero/1.0/
 
 all: kernel
 
@@ -26,10 +28,13 @@ kernel:
 symbols:
 	$(MAKE) -C kernel kernel.sym ROOT=${ROOT}
 
-clean:
+clean_liborl:
+	$(MAKE) -C liborl clean
+
+clean: clean_liborl
 	$(MAKE) -C libc clean MODE216="kernel"
 	$(MAKE) -C linker clean MODE216="kernel"
 	$(MAKE) -C kernel clean
-	$(MAKE) -C liborl clean
 
-.PHONY: clean libc kernel linker symbols liborl
+.PHONY: clean libc kernel linker symbols liborl clean_liborl
+.IGNORE: clean_liborl

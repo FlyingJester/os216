@@ -1,3 +1,5 @@
+# Any copyright of this file is dedicated to the Public Domain.
+# http://creativecommons.org/publicdomain/zero/1.0/
 
 LIBC=lib216c.a
 OBJECTS=string.o stdio.o ctype.o

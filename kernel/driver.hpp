@@ -1,16 +1,50 @@
+/* 
+ *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 
+ * - Products derived from this software may not be called "os216", nor may
+ *     "216" appear in their name, without prior written permission of
+ *     the copyright holders.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#ifndef OS216_KERNEL_DRIVER_HPP
+#define OS216_KERNEL_DRIVER_HPP
 #pragma once
+
+/*****************************************************************************/
+
+#include "attributes.h"
 #include "cpp.hpp"
+#include "device.h"
 
 #include "arch/io.h"
 
 #include "platform/fatal.h"
 
-#include "attributes.h"
-#include "device.h"
-
 #include <vector>
 
+/*****************************************************************************/
+
 namespace os216 {
+
+/*****************************************************************************/
 
 class Driver {
 public:
@@ -79,6 +113,8 @@ public:
     }
 };
 
+/*****************************************************************************/
+
 class Bus : public Driver {
 protected:
     std::vector<OS216_Device> m_devices;
@@ -91,6 +127,8 @@ public:
     virtual size_t getDevicesSize() const { return m_devices.size(); }
     
 };
+
+/*****************************************************************************/
 
 class DeviceDriver : public Driver {
 public:
@@ -105,6 +143,8 @@ public:
     virtual void onInterrupt(unsigned vec) const = 0;
     
 };
+
+/*****************************************************************************/
 
 class UserDriver : public DeviceDriver {
 public:
@@ -137,23 +177,39 @@ public:
     void addInterruptGrant(unsigned interrupt);
 };
 
+/*****************************************************************************/
+
 // These specializations have slightly more efficient representations.
 template<>
 void Driver::out<uint8_t>(uint8_t data, uintptr_t to) const;
 
+/*****************************************************************************/
+
 template<>
 void Driver::out<uint16_t>(uint16_t data, uintptr_t to) const;
+
+/*****************************************************************************/
 
 template<>
 void Driver::out<uint32_t>(uint32_t data, uintptr_t to) const;
 
+/*****************************************************************************/
+
 template<>
 uint8_t Driver::in<uint8_t>(uintptr_t from) const;
+
+/*****************************************************************************/
 
 template<>
 uint16_t Driver::in<uint16_t>(uintptr_t from) const;
 
+/*****************************************************************************/
+
 template<>
 uint32_t Driver::in<uint32_t>(uintptr_t from) const;
 
+/*****************************************************************************/
+
 } // namespace os216
+
+#endif // OS216_KERNEL_DRIVER_HPP

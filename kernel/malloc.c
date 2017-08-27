@@ -1,5 +1,34 @@
+/* 
+ *  Copyright (c) 2016-2017 Martin McDonough.  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 
+ * - Products derived from this software may not be called "os216", nor may
+ *     "216" appear in their name, without prior written permission of
+ *     the copyright holders.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+/* PCH must be first. */
 #include "malloc.h"
+
 #include "string.h"
+
 #include "platform/fatal.h"
 #include "platform/print.h"
 
@@ -31,15 +60,34 @@
  */
 
 #define OS216_LARGE_PAGE_SIZE 4096
+
+/*****************************************************************************/
+
 #define OS216_SMALL_PAGE_SIZE (64 * 8)
+
+/*****************************************************************************/
+
 #define OS216_NUM_LARGE_HEAP_PAGES 32
+
+/*****************************************************************************/
+
 #define OS216_NUM_SMALL_HEAP_PAGES 256
+
+/*****************************************************************************/
+
 static uint8_t OS216_KernelLargeHeap[OS216_LARGE_PAGE_SIZE *
     OS216_NUM_LARGE_HEAP_PAGES];
+
+/*****************************************************************************/
+
 static uint8_t OS216_KernelSmallHeap[OS216_SMALL_PAGE_SIZE *
     OS216_NUM_SMALL_HEAP_PAGES];
 
+/*****************************************************************************/
+
 #define OS216_LARGE_HEAP_OBJECT_SIZE OS216_PAGE_SIZE
+
+/*****************************************************************************/
 
 OS216_COLD
 void OS216_InitKernelMemory(void){
@@ -51,6 +99,7 @@ void OS216_InitKernelMemory(void){
     }
 }
 
+/*****************************************************************************/
 /* Heap datas are always stored strictly ascending */
 struct OS216_KernelLargeHeapData{
     unsigned char used;
@@ -58,9 +107,13 @@ struct OS216_KernelLargeHeapData{
     struct OS216_KernelLargeHeapData *next;
 };
 
+/*****************************************************************************/
+
 static struct OS216_KernelLargeHeapData os216_kernel_large_heap_data = {
     1, 0, (void*)0
 };
+
+/*****************************************************************************/
 
 static uint64_t os216_small_get_needed_bitmask(uint32_t amount, unsigned *out_bit_shift){
     /* Size is the 16-bit size entry, followed by the number of 8-byte
@@ -79,6 +132,8 @@ static uint64_t os216_small_get_needed_bitmask(uint32_t amount, unsigned *out_bi
     out_bit_shift[0] = size;
     return needed;
 }
+
+/*****************************************************************************/
 
 OS216_MALLOC_ATTR static void *large_malloc(size_t amount){
     /* At is the current count. We have to sum the data's sizes to know
@@ -143,6 +198,8 @@ os216_malloc_find_frame:
     }
 }
 
+/*****************************************************************************/
+
 OS216_MALLOC_ATTR static void *small_malloc(size_t amount){
     unsigned i;
     for(i = 0; OS216_LIKELY(i < OS216_NUM_SMALL_HEAP_PAGES); i++){
@@ -188,6 +245,8 @@ OS216_MALLOC_ATTR static void *small_malloc(size_t amount){
     return (void*)0;
 }
 
+/*****************************************************************************/
+
 OS216_MALLOC_ATTR void *malloc(size_t amount){
     if(OS216_UNLIKELY(amount == 0))
         return (void*)0;
@@ -196,6 +255,8 @@ OS216_MALLOC_ATTR void *malloc(size_t amount){
     else
         return small_malloc(amount);
 }
+
+/*****************************************************************************/
 
 OS216_MALLOC_ATTR void *calloc(size_t count, size_t amount){
     uint8_t *const data = malloc(count * amount);
@@ -206,12 +267,16 @@ OS216_MALLOC_ATTR void *calloc(size_t count, size_t amount){
     return data;
 }
 
+/*****************************************************************************/
+
 OS216_MEMORY_PURE unsigned is_small(const void *mem);
 unsigned is_small(const void *mem){
     const uintptr_t small_heap_start = (uintptr_t)OS216_KernelSmallHeap,
         small_heap_end = small_heap_start + sizeof(OS216_KernelSmallHeap);
     return ((uintptr_t)mem >= small_heap_start && (uintptr_t)mem <= small_heap_end);
 }
+
+/*****************************************************************************/
 
 OS216_MEMORY_PURE unsigned is_large(const void *mem);
 unsigned is_large(const void *mem){
@@ -220,12 +285,16 @@ unsigned is_large(const void *mem){
     return ((uintptr_t)mem >= large_heap_start && (uintptr_t)mem <= large_heap_end);
 }
 
+/*****************************************************************************/
+
 void *realloc(void *mem, size_t new_amount){
     (void)mem;
     (void)new_amount;
     OS216_FATAL("realloc not implemented yet!");
     return mem;
 }
+
+/*****************************************************************************/
 
 static void small_free(void *given_addr){
     /* Watcom doesn't like negative indices */
@@ -274,6 +343,8 @@ static void small_free(void *given_addr){
     bitmap_addr[0] &= ~needed;
 }
 
+/*****************************************************************************/
+
 static void large_free(void *mem){
     const uintptr_t mem_i = (uintptr_t)mem;
     struct OS216_KernelLargeHeapData *data =
@@ -294,6 +365,8 @@ static void large_free(void *mem){
     return;
 }
 
+/*****************************************************************************/
+
 void free(void *mem){
     if(mem == (void*)0){
         return;
@@ -308,3 +381,5 @@ void free(void *mem){
         OS216_FATAL("Memory is not in the small or large kernel heap.");
     }
 }
+
+/*****************************************************************************/

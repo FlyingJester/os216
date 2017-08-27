@@ -1,12 +1,42 @@
+/* 
+ *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 
+ * - Products derived from this software may not be called "os216", nor may
+ *     "216" appear in their name, without prior written permission of
+ *     the copyright holders.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
+#ifndef OS216_KERNEL_PC_PCI_UTILS_H
+#define OS216_KERNEL_PC_PCI_UTILS_H
 #pragma once
-#ifndef OS216_PCI_UTILS_H
-#define OS216_PCI_UTILS_H
 
 #include "../attributes.h"
+
+/*****************************************************************************/
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/*****************************************************************************/
 
 enum OS216_EnumPCIClass {
     OS216_ePCIAncientDevice = 0,    /* 0  */
@@ -31,11 +61,15 @@ enum OS216_EnumPCIClass {
     OS216_ePCIUnknown = 0xFF
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIAncientFunctions {
     OS216_eAncientNotVGADevice = 0,
     OS216_eAncientVGADevice,        /* 1  */
     OS216_NUM_KNOWN_ANCIENT_FUNCTIONS
 };
+
+/*****************************************************************************/
 
 enum OS216_EnumPCIMassStorageFunctions {
     OS216_eStorageSCSIController = 0,
@@ -49,10 +83,14 @@ enum OS216_EnumPCIMassStorageFunctions {
     OS216_NUM_KNOWN_STORAGE_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCINetworkFunctions {
     OS216_eEthernetController = 0
     OS216_NUM_KNOWN_NETWORK_FUNCTIONS
 };
+
+/*****************************************************************************/
 
 enum OS216_EnumPCIDisplayFunctions {
     OS216_eDisplayVGAController = 0,
@@ -62,6 +100,8 @@ enum OS216_EnumPCIDisplayFunctions {
     OS216_NUM_KNOWN_DISPLAY_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIMultimediaFunctions {
     OS216_eMediaVideoDevice = 0,
     OS216_eMediaAudioDevice,        /* 1  */
@@ -69,11 +109,15 @@ enum OS216_EnumPCIMultimediaFunctions {
     OS216_NUM_KNOWN_MEDIA_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIMemoryFunctions {
     OS216_eMemoryRAMController = 0,
     OS216_eMemoryFlashController,   /* 1  */
     OS216_NUM_KNOWN_MEMORY_FUNCTIONS
 };
+
+/*****************************************************************************/
 
 enum OS216_EnumPCIBridgeFunctions {
     OS216_eBridgeHostBridge = 0,
@@ -87,6 +131,8 @@ enum OS216_EnumPCIBridgeFunctions {
     OS216_NUM_KNOWN_BRIDGE_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIComFunctions {
     OS216_eComSerialController = 0,
     OS216_eComParallelController,   /* 1  */
@@ -94,6 +140,8 @@ enum OS216_EnumPCIComFunctions {
     OS216_eComModem,                /* 3  */
     OS216_NUM_KNOWN_COM_FUNCTIONS
 };
+
+/*****************************************************************************/
 
 enum OS216_EnumPCIBaseFunctions {
     OS216_eBaseInterruptController = 0,
@@ -104,6 +152,8 @@ enum OS216_EnumPCIBaseFunctions {
     OS216_NUM_KNOWN_BASE_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIInputFunctions {
     OS216_eInputKeyboard = 0,
     OS216_eInputDigitizer,          /* 1  */
@@ -113,6 +163,8 @@ enum OS216_EnumPCIInputFunctions {
     OS216_NUM_KNOWN_INPUT_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 enum OS216_EnumPCIProcessorFunctions {
     OS216_eProcessorPCI386 = 0,
     OS216_eProcessorPCI486,         /* 1  */
@@ -120,10 +172,14 @@ enum OS216_EnumPCIProcessorFunctions {
     OS216_NUM_KNOWN_INPUT_FUNCTIONS
 };
 
+/*****************************************************************************/
+
 OS216_MEMORY_PURE const char *OS216_PCIClassName(enum OS216_EnumPCIClass);
+
+/*****************************************************************************/
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif
+#endif /* OS216_KERNEL_PC_PCI_UTILS_H */

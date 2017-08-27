@@ -1,9 +1,39 @@
+/* 
+ *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ * 
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ * 
+ * - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ * 
+ * - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the
+ *     documentation and/or other materials provided with the distribution.
+ * 
+ * - Products derived from this software may not be called "os216", nor may
+ *     "216" appear in their name, without prior written permission of
+ *     the copyright holders.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
+ */
+
 /* PCH must be first */
 #include "malloc.h"
+
 #include "assert.h"
+
 #include "arch/memory.h"
 
 #include "physical_memory.h"
+
+/*****************************************************************************/
 
 struct OS216_PageRegion{
     struct OS216_PageRegionInfo info;
@@ -11,15 +41,23 @@ struct OS216_PageRegion{
     struct OS216_PageRegion *next;
 };
 
+/*****************************************************************************/
+
 static struct OS216_PageRegion *physical_regions = NULL;
+
+/*****************************************************************************/
 
 void OS216_LockRegionAllocator(){
     /* TODO: When we get SMP! */
 }
 
+/*****************************************************************************/
+
 void OS216_UnlockRegionAllocator(){
     /* TODO: When we get SMP! */
 }
+
+/*****************************************************************************/
 
 struct OS216_PageRegion *OS216_AllocateRegion(unsigned min_length,
     struct OS216_PageRegion *hint){
@@ -100,20 +138,31 @@ struct OS216_PageRegion *OS216_AllocateRegion(unsigned min_length,
         OS216_FATAL("Out of physical memory!");
     }
 }
+
+/*****************************************************************************/
  
 struct OS216_PageRegionInfo *OS216_GetPageRegionInfo(
     struct OS216_PageRegion *region){
     return &region->info;
 }
 
+/*****************************************************************************/
+
 void OS216_MapPhysicalMemory(struct OS216_PageRegion *region, void *virt){
     region->mapped = true;
-    /*OS216_MapPhysicalPages(region->info.start, region->info.num_pages, virt); */ (void)virt;
+    /*
+    OS216_MapPhysicalPages(region->info.start, region->info.num_pages, virt);
+    */
+    (void)virt;
 }
+
+/*****************************************************************************/
 
 void OS216_FreeRegion(struct OS216_PageRegion *region){
     if(region->mapped){
-/*        OS216_UnmapPhysicalPages(region->info.start, region->info.num_pages); */
+    /*
+    OS216_UnmapPhysicalPages(region->info.start, region->info.num_pages);
+    */
         region->mapped = false;
     }
     
