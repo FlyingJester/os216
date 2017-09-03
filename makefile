@@ -8,7 +8,8 @@ ROOT=${PWD}
 .include "platform.mk"
 .include "216.mk"
 
-kernel: libc linker liborl
+tools:
+	$(MAKE) -C tools
 
 ORLCFLAGS=$(CFLAGS) -Wno-unused-parameter -Wno-missing-prototypes -Wno-implicit-fallthrough
 ORLCXXFLAGS=$(CXXFLAGS)
@@ -19,13 +20,13 @@ liborl:
 libc:
 	$(MAKE) -C libc MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
-linker:
+linker: tools
 	$(MAKE) -C linker MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
-kernel:
+kernel: tools libc linker liborl
 	$(MAKE) -C kernel ROOT=${ROOT} PARALLEL=${PARALLEL} ${PARALLEL}
 
-symbols:
+symbols: kernel
 	$(MAKE) -C kernel kernel.sym ROOT=${ROOT}
 
 clean_liborl:
