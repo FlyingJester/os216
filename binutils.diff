@@ -1,0 +1,32 @@
+*** binutils/config.sub	2017-09-03 00:12:26.293212600 -0700
+--- binutils/config.sub	2017-09-03 00:07:19.949384100 -0700
+***************
+*** 1386,1388 ****
+  	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
+! 	      | -sym* | -kopensolaris* | -plan9* \
+  	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+--- 1386,1388 ----
+  	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
+! 	      | -sym* | -kopensolaris* | -plan9* | -os216* \
+  	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+*** binutils/bfd/config.bfd	2017-09-03 00:12:17.715646300 -0700
+--- binutils/bfd/config.bfd	2017-09-03 00:11:36.296262400 -0700
+***************
+*** 641,642 ****
+--- 641,646 ----
+      ;;
++   i[3-7]86-*-os216*)
++     targ_defvec=i386_elf32_vec
++     targ_selvecs="iamcu_elf32_vec i386_coff_vec i386_coff_vec i386_pe_vec i386_aout_vec sym_vec"
++   ;;
+    i[3-7]86-*-solaris2*)
+*** binutils/ld/configure.tgt	2017-09-03 00:19:56.463429800 -0700
+--- binutils/ld/configure.tgt	2017-09-03 01:22:46.667683100 -0700
+***************
+*** 323,324 ****
+--- 323,327 ----
+  			targ_extra_emuls=elf_iamcu ;;
++ i[3-7]86-*-os216*)	targ_emul=elf_i386
++ 			targ_extra_emuls="elf_iamcu i386coff i386pe"
++ 			targ_extra_ofiles="deffilep.o pe-dll.o" ;;
+  x86_64-*-elf* | x86_64-*-rtems* | x86_64-*-fuchsia*)
