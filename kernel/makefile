@@ -33,6 +33,9 @@ OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o
 
 COMMON_HEADERS=platform/fatal.h platform/print.h attributes.h
 
+# includes to use liborl
+ORLINCLUDE=-I$(ROOT)/liborl/include
+
 # Kernel objects
 cpp.o: cpp.cpp cpp.hpp cpp.hpp.gch
 	$(CXX) $(CXXFLAGS) -c cpp.cpp -o cpp.o
@@ -62,7 +65,7 @@ syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 	$(CXX) $(CXXFLAGS) -c syscall.cpp -o syscall.o
 
 kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
-	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
+	$(CXX) $(CXXFLAGS) $(ORLINCLUDE) -c kernel.cpp -o kernel.o
 
 CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`
 CRTEND=`$(CXX) $(CXXFLAGS) -print-file-name=crtend.o`
