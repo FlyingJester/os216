@@ -1,5 +1,43 @@
+*** gcc/gcc/config.gcc	2017-09-02 23:47:40.335076700 -0700
+--- gcc/gcc/config.gcc	2017-09-03 13:00:02.398115100 -0700
+***************
+*** 825,826 ****
+--- 825,832 ----
+    ;;
++ *-*-os216*)
++   gas=yes
++   gnu_ld=yes
++   default_use_cxa_atexit=yes
++   use_gcc_stdint=provide
++   ;;
+  *-*-rtems*)
+***************
+*** 1440,1441 ****
+--- 1446,1450 ----
+  	;;
++ i[34567]86-*-os216)
++ 	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h newlib-stdint.h i386/i386elf.h os216.h"
++ 	;;
+  i[34567]86-*-elfiamcu)
+*** /dev/null	2017-09-03 14:20:18.000000000 -0700
+--- gcc/gcc/config/os216.h	2017-09-03 02:12:29.407052900 -0700
+***************
+*** 0 ****
+--- 1,12 ----
++ #undef TARGET_OS216
++ #define TARGET_OS216 1
++ 
++ #undef NO_IMPLICIT_EXTERN_C
++ #define NO_IMPLICIT_EXTERN_C 1
++ 
++ #undef TARGET_OS_CPP_BUILTINS
++ #define TARGET_OS_CPP_BUILTINS() {\
++         builtin_define("__os216__");\
++         builtin_assert("system=os216");\
++         \
++     }
 *** gcc/config.sub	2016-12-29 03:04:53.000000000 -0800
---- gcc/config.sub	2017-09-02 23:41:03.564631700 -0800
+--- gcc/config.sub	2017-09-02 23:41:03.564631700 -0700
 ***************
 *** 1388,1390 ****
   	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
@@ -9,40 +47,3 @@
   	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -auroraux* | -solaris* \
 ! 	      | -sym* | -kopensolaris* | -plan9* | -os216* \
   	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
-*** gcc/gcc/config.gcc	2017-09-02 23:47:40.335076700 -0700
---- gcc/gcc/config.gcc	2017-09-02 23:57:58.812048700 -0700
-***************
-*** 825,826 ****
---- 825,831 ----
-    ;;
-+ *-*-os216*)
-+   gas=yes
-+   gnu_ld=yes
-+   default_use_cxa_atexit=yes
-+   ;;
-  *-*-rtems*)
-***************
-*** 1440,1441 ****
---- 1445,1449 ----
-  	;;
-+ i[34567]86-*-os216)
-+ 	tm_file="${tm_file} i386/unix.h i386/att.h dbxelf.h elfos.h newlib-stdint.h i386/i386elf.h os216.h"
-+ 	;;
-  i[34567]86-*-elfiamcu)
-*** /dev/null	2017-09-03 00:01:55.000000000 -0700
---- gcc/gcc/os216.h	2017-09-02 23:55:54.792887300 -0700
-***************
-*** 0 ****
---- 1,12 ----
-+ #undef TARGET_OS216
-+ #undef TARGET_OS216 1
-+ 
-+ #undef NO_IMPLICIT_EXTERN_C
-+ #define NO_IMPLICIT_EXTERN_C 1
-+ 
-+ #undef TARGET_OS_CPP_BUILTINS
-+ #define TARGET_OS_CPP_BUILTINS() {\
-+         builtin_define("__os216__")\
-+         builtin_assert("system=os216")\
-+         \
-+     }
