@@ -1,0 +1,350 @@
+// Copyright (c) 2017 Martin McDonough.  All rights reserved.
+//
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#ifndef OS216_STDLIB_LIST
+#define OS216_STDLIB_LIST
+#pragma once
+
+#include <assert.h>
+#include <stddef.h>
+
+#include <os216_std_attributes.hpp>
+
+namespace std {
+
+template<typename T>
+class list{
+public:
+    
+    struct node {
+        T m_that;
+        node *m_next, *m_previous;
+    };
+    
+    template<typename E, typename Base>
+    class iterator_base {
+        node *m_node;
+        bool m_end;
+        
+        iterator_base(node *that, bool end)
+          : m_node(that)
+          , m_end(end){
+            
+        }
+        
+    public:
+        
+        friend class list<Base>
+        
+        E &operator*(){ return m_node->that; }
+        const E &operator*() const { return m_node->that; }
+        
+        iterator_base<E, Base> &operator++(){
+            assert(!m_end);
+            node *const l_node = m_node->next;
+            if(l_node != NULL)
+                m_node = m_node->m_next;
+            else
+                m_end = true;
+            return *this;
+        }
+        
+        iterator_base<E, Base> operator++(int){
+            assert(!m_end);
+            node *const l_node = m_node->next;
+            if(l_node != NULL)
+                return iterator_base<E, Base>(l_node, false);
+            else
+                return iterator_base<E, Base>(m_node, true);
+        }
+        
+        iterator_base<E, Base> &operator--(){
+            if(m_end)
+                m_end = false;
+            else
+                m_node = m_node->m_previous;
+            return *this;
+        }
+        
+        iterator_base<E, Base> operator--(int){
+            return --iterator_base<E, Base>(m_node, m_end);
+        }
+        
+        template<typename OtherE>
+        bool operator==(const iterator_base<OtherE, T> &other) const {
+            return other.m_node == m_node && m_end == other.m_end;
+        };
+        
+        template<typename OtherE>
+        iterator_base<E, Base> &operator=(const iterator_base<OtherE, T> &other) {
+            // If this is a conversion from const to non-const, this will fail.
+            m_node = other.m_node;
+            m_end = other.m_end;
+            return *this;
+        };
+    };
+    
+    typedef T value_type;
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T &reference;
+    typedef const T &const_reference;
+    typedef T *pointer;
+    typedef const T *const_pointer;
+    
+    typedef iterator_base<T, T> iterator;
+    typedef iterator_base<const T, T> const_iterator;
+    
+private:
+    
+    struct node *m_front, *m_back;
+    
+public:
+    
+    OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR list()
+      : m_front(NULL)
+      , m_back(NULL){
+    
+    }
+    
+    explicit list(size_type count, const T &value = T()){
+        if(count == 0){
+            m_front = m_back = NULL;
+        }
+        else{
+            struct node *l_node = m_front = new node();
+            m_front->m_previous = NULL;
+            l_node->m_that = *first;
+            while(++first != last){
+                l_node->m_next = new node();
+                l_node->m_next->m_previous = l_node;
+                l_node = l_node->m_next;
+                l_node->m_that = value;
+            }
+            m_back = l_node;
+            m_back->m_next = NULL;
+        }
+    }
+    
+    template<class InputIter>
+    list(InputIter first, InputIter last){
+        if(first == last){
+            m_front = m_back = NULL;
+        }
+        else{
+            struct node *l_node = m_front = new node();
+            m_front->m_previous = NULL;
+            l_node->m_that = *first;
+            while(++first != last){
+                l_node->m_next = new node();
+                l_node->m_next->m_previous = l_node;
+                l_node = l_node->m_next;
+                l_node->m_that = *first;
+            }
+            m_back = l_node;
+            m_back->m_next = NULL;
+        }
+    }
+    
+    ~list(){
+        clear();
+    }
+    
+    inline bool empty() const {
+        const bool l_empty = (m_front == NULL);
+        assert(l_empty == (m_back == NULL));
+        return l_empty;
+    }
+    
+    inline size_t size() const {
+        const node *l_node = m_front;
+        
+        assert((m_front == NULL) == (m_back == NULL));
+        
+        if(l_node == NULL)
+            return 0;
+        if(m_front == m_back)
+            return 1;
+        
+        size_t l_size = 0;
+        
+        while(l_node != NULL){
+            l_node = node->m_next;
+            l_size++;
+        }
+        
+        return l_size;
+    }
+    
+    T &front(){ assert(m_front); assert(m_back); return m_front->m_that; }
+    T &back(){ assert(m_back); assert(m_front); return m_back->m_that; }
+    
+    const T &front() const { assert(m_front); assert(m_back); return m_front->m_that; }
+    const T &back() const { assert(m_back); assert(m_front); return m_back->m_that; }
+    
+    iterator begin() { return iterator(m_front, false); }
+    iterator end() { return iterator(m_back, true); }
+    
+    const_iterator begin() const { return iterator(m_front, false); }
+    const_iterator end() const { return iterator(m_back, true); }
+    
+    const_iterator cbegin() const { return iterator(m_front, false); }
+    const_iterator cend() const { return iterator(m_back, true); }
+    
+    void clear(){
+        node *l_node = m_front;
+        while(l_node != NULL){
+            node *const next = l_node->next;
+            delete l_node;
+            l_node = next;
+        }
+        
+        m_front = m_back = NULL;
+    }
+    
+    iterator insert(iterator pos, const T &value){
+        node *const l_node = pos.m_node;
+        assert(l_node != NULL);
+        
+        if(m_front == NULL){
+            m_front = m_back = new node();
+            m_front->m_next = m_front->m_back = NULL;
+            m_front->m_that = value;
+            return iterator(m_front, false);
+        }
+        else if(m_front == m_back){
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            // Check if m_end is set to determine if the new node should be first or last.
+            if(pos.m_end){
+                // Put it at the abck
+                m_back = new node();
+                m_back->m_that = value;
+                m_back->m_next = NULL;
+                m_back->m_previous = m_front;
+                return iterator(m_back, false);
+            }
+            else{
+                // Put it at the front
+                m_front = new node();
+                m_front->m_that = value;
+                m_front->m_next = m_back;
+                m_front->m_previous = NULL;
+                return iterator(m_front, false);
+            }
+        }
+        else{
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            node *const previous = l_node->m_previous;
+            node *const add = l_node->m_previous = new node();
+            add->m_next = l_node;
+            add->m_previous = previous;
+            add->m_that = value;
+            
+            if(l_node == m_back)
+                m_back = add;
+            else if(l_node == m_front)
+                m_front = add;
+            
+            return iterator(add, false);
+        }
+    }
+    
+    void push_back(const T &value){
+        if(m_front == NULL){
+            m_front = m_back = new node();
+            m_front->m_next = m_front->m_back = NULL;
+            m_front->m_that = value;
+        }
+        else if(m_front == m_back){
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            m_back = new node();
+            m_back->m_that = value;
+            m_back->m_next = NULL;
+            m_back->m_previous = m_front;
+        }
+        else{
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            node *const add = m_back->m_next = new node();
+            add->m_previous = m_back;
+            add->m_next = NULL;
+            add->m_that = value;
+            m_back = add;
+        }
+    }
+    
+    void push_front(const T &value){
+        if(m_front == NULL){
+            m_front = m_back = new node();
+            m_front->m_next = m_front->m_back = NULL;
+            m_front->m_that = value;
+        }
+        else if(m_front == m_back){
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            m_front = new node();
+            m_front->m_that = value;
+            m_front->m_next = m_back;
+            m_front->m_previous = NULL;
+        }
+        else{
+            assert(m_back->m_next == NULL);
+            assert(m_front->m_previous == NULL);
+            
+            node *const add = m_front->m_previous = new node();
+            add->m_previous = NULL;
+            add->m_next = m_front;
+            add->m_that = value;
+            m_front = add;
+        }
+    }
+    
+    void pop_back(){
+        assert(m_front);
+        assert(m_back);
+        
+        if(m_front == m_back){
+            delete m_front;
+            delete m_back;
+            m_front = m_back = NULL;
+        }
+        else{
+            node *const l_node = m_back->previous;
+            delete m_back;
+            m_back = l_node;
+            l_node->m_next = NULL;
+        }
+    }
+    
+    void pop_front(){
+        assert(m_front);
+        assert(m_back);
+        
+        if(m_front == m_back){
+            delete m_front;
+            delete m_back;
+            m_front = m_back = NULL;
+        }
+        else{
+            node *const l_node = m_front->next;
+            delete m_front;
+            m_front = l_node;
+            l_node->m_previous = NULL;
+        }
+    }
+};
+
+} // namespace std
+
+#endif // OS216_STDLIB_LIST
