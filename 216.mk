@@ -5,7 +5,7 @@
 
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
-GOLD=$(PREFIX)ld.gold
+LD=$(PREFIX)ld
 OBJCOPY=$(PREFIX)objcopy
 CCFLAGS=-Wall -Wextra -Werror -fno-builtin -nostdlib -ffreestanding -pipe -I${ROOT}/libc/include -I${ROOT}/libcpp/include
 CFLAGS=$(CCFLAGS) -ansi -Wenum-compare -Wjump-misses-init -Wmissing-prototypes -g 

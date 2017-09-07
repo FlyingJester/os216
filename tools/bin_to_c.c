@@ -6,8 +6,8 @@ int main(int argc, char **argv){
 	int c;
 	unsigned long i = 4;
 	char buffer[5];
-	if(argc < 3){
-		fputs("Usage: bin_to_c <source> <dest>\n", stderr);
+	if(argc < 4){
+		fputs("Usage: bin_to_c <source> <dest> <name>\n", stderr);
 		return EXIT_FAILURE;
 	}
 	src = fopen(argv[1], "rb");
@@ -26,7 +26,9 @@ int main(int argc, char **argv){
 	if(!(src && dst))
 		return EXIT_FAILURE;
 	
-	fputs("const unsigned char data[] = {\n    ", dst);
+	fputs("const unsigned char ", dst);
+    fputs(argv[3], dst);
+    fputs("[] = {\n    ", dst);
 	buffer[0] = '0';
 	buffer[1] = 'x';
 	buffer[4] = ',';
