@@ -43,6 +43,7 @@ clean: clean_liborl
 	$(MAKE) -C libc clean MODE216="kernel"
 	$(MAKE) -C linker clean MODE216="kernel"
 	$(MAKE) -C kernel clean
+	$(MAKE) -C userland clean
 
 .PHONY: clean libc kernel linker symbols liborl clean_liborl initrd userland tools
 .IGNORE: clean_liborl

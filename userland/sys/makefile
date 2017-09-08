@@ -16,7 +16,7 @@ package:
 .endfor
 
 clean:
-.for target in $(ALL_USERLAND)
+.for target in $(ALL_SYS)
 	$(MAKE) -C $(target) clean
 .endfor
 
