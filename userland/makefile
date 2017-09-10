@@ -18,7 +18,7 @@ all:
 .endfor
 
 package:
-	cp $(ROOT)/kernel/initrd/rd_contents_base.c $(ROOT)/kernel/initrd/rd_contents_new.c
+	truncate -s 0 $(ROOT)/kernel/initrd/rd_contents_new.inc
 	truncate -s 0 $(ROOT)/kernel/initrd/rd_list_new.inc
 	truncate -s 0 $(ROOT)/kernel/initrd/rd_macro_new.inc
 .for target in $(PACKAGED_USERLAND)

@@ -12,8 +12,7 @@ PACKAGE_NAME?=${PACKAGE_TARGET}
 
 package: $(PACKAGE_TARGET)
 	$(ROOT)/tools/bin_to_c $(PACKAGE_TARGET) ./tmp.c $(PACKAGE_NAME)
-	cat ./tmp.c >> $(ROOT)/kernel/initrd/rd_contents_new.c
+	cat ./tmp.c >> $(ROOT)/kernel/initrd/rd_contents_new.inc
 	rm ./tmp.c
-	echo "${PACKAGE_NAME} ," >> $(ROOT)/kernel/initrd/rd_list_new.inc
 	echo "X(${PACKAGE_NAME})" >> $(ROOT)/kernel/initrd/rd_macro_new.inc
 
