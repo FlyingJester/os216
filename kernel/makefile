@@ -18,6 +18,7 @@ malloc.h.gch: malloc.h
 # Platform and architecture libraries
 LIBPLATFORM=$(PLATFORM)/lib216platform.a
 LIBARCH=$(ARCH)/lib216arch.a
+LIBINITRD=initrd/libinitrd.a
 
 $(LIBPLATFORM): buildplatform
 
@@ -28,6 +29,11 @@ $(LIBARCH): buildarch
 
 buildarch:
 	$(MAKE) -C $(ARCH) ${PARALLEL} ROOT=${ROOT}
+
+$(LIBINITRD): buildinitrd
+
+buildinitrd:
+	$(MAKE) -C initrd
 
 OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o kernel.o syscall.o physical_memory.o
 
@@ -80,8 +86,12 @@ CRTSTARTOBJS=../libc/crti.o crtbegin.o
 CRTENDOBJS=crtend.o ../libc/crtn.o
 
 # Kernel binary
-kernel.elf: $(LIBPLATFORM) $(LIBARCH) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
-	$(CXX) $(CXXFLAGS) $(CRTSTARTOBJS) $(OBJECTS) $(LIBPLATFORM) $(LIBARCH) -L$(ROOT)/libc -l216c libgcc.a $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
+KLIBDEPS=$(LIBPLATFORM) $(LIBARCH) $(LIBINITRD)
+KLIBS=$(KLIBDEPS) -lorl-static -l216c libgcc.a
+KLIBDIRS=-L$(LIBCDIR) -L$(ORLDIR)
+
+kernel.elf: $(KLIBDEPS) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
+	$(CXX) $(CXXFLAGS) $(KLIBDIRS) $(CRTSTARTOBJS) $(OBJECTS) $(KLIBS) $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
 
 kernel.sym: kernel.elf
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym
@@ -89,6 +99,7 @@ kernel.sym: kernel.elf
 clean:
 	$(MAKE) -C $(PLATFORM) clean
 	$(MAKE) -C $(ARCH) clean
+	$(MAKE) -C initrd clean
 	rm *.o kernel.elf $(PRECOMPILED_HEADERS) $(C_PRECOMPILED_HEADER) $(CXX_PRECOMPILED_HEADER) crtbegin.o crtend.o
 
 .PHONY: clean mkplatform mkarch buildarch buildplatform

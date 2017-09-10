@@ -14,12 +14,14 @@ tools:
 
 ORLCFLAGS=$(CFLAGS) -Wno-unused-parameter -Wno-missing-prototypes -Wno-implicit-fallthrough
 ORLCXXFLAGS=$(CXXFLAGS)
+ORLDIR=${ROOT}/liborl
+LIBCDIR=${ROOT}/libc
 
 liborl:
-	$(MAKE) -C liborl liborl-static.a CC=$(CC) LINK=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) CFLAGS="$(ORLCFLAGS)" CXXFLAGS="$(ORLCXXFLAGS)" ORL_FEATURE_FLAGS=-DORL_ENABLE_ELF
+	$(MAKE) -C $(ORLDIR) liborl-static.a CC=$(CC) LINK=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) CFLAGS="$(ORLCFLAGS)" CXXFLAGS="$(ORLCXXFLAGS)" ORL_FEATURE_FLAGS=-DORL_ENABLE_ELF
 
 libc:
-	$(MAKE) -C libc MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
+	$(MAKE) -C $(LIBCDIR) MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
 linker: tools
 	$(MAKE) -C linker MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
@@ -31,7 +33,7 @@ initrd: userland
 	$(MAKE) -C userland package PARALLEL=${PARALLEL} ROOT=${ROOT}
 
 kernel: tools libc linker liborl initrd
-	$(MAKE) -C kernel ROOT=${ROOT} PARALLEL=${PARALLEL}
+	$(MAKE) -C kernel ROOT=${ROOT} PARALLEL=${PARALLEL} ORLDIR=${ORLDIR} LIBCDIR=${LIBCDIR}
 
 symbols: kernel
 	$(MAKE) -C kernel kernel.sym ROOT=${ROOT}
