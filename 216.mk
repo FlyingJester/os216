@@ -6,6 +6,7 @@
 CC=$(PREFIX)gcc
 CXX=$(PREFIX)g++
 LD=$(PREFIX)ld
+STRIP=$(PREFIX)strip
 OBJCOPY=$(PREFIX)objcopy
 CCFLAGS=-Wall -Wextra -Werror -fno-builtin -nostdlib -ffreestanding -pipe -I${ROOT}/libc/include -I${ROOT}/libcpp/include
 CFLAGS=$(CCFLAGS) -ansi -Wenum-compare -Wjump-misses-init -Wmissing-prototypes -g 

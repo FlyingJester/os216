@@ -13,7 +13,7 @@ libinitrd.a: rd_contents.o
 	$(RANLIB) $(RANLIBFLAGS) libinitrd.a
 
 clean:
-	rm $(INC) $(NEW_INC) rd_contents.o
+	rm $(INC) libinitrd.a rd_contents.o
 
 .IGNORE: clean generate_includes
 .PHONY: clean

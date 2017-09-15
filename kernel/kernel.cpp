@@ -33,6 +33,8 @@
 #include "arch/interrupts.h"
 #include "arch/memory.h"
 
+#include "initrd/initrd.h"
+
 #include "platform/bus.hpp"
 #include "platform/fatal.h"
 #include "platform/print.h"
@@ -87,7 +89,8 @@ void OS216_Main(){
     
     OS216_ClearScreen();
     
-    OS216_PrintString("\tOS 216 version 0.01\n    Copyright (c) 2016-2017 Martin McDonough\n\n");
+    OS216_PrintString("\tOS 216 version 0.01\n"
+        "    Copyright (c) 2016-2017 Martin McDonough\n\n");
     OS216_PrintString(license_text1);
     OS216_Newline();
     OS216_Newline();
@@ -96,6 +99,17 @@ void OS216_Main(){
     OS216_Newline();
     OS216_PrintString(license_text3);
     
+    OS216_Newline();
+    
+    for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
+        OS216_PrintString("Initial RamDisk file ");
+        OS216_PrintInteger(i);
+        OS216_PrintString(": ");
+        OS216_PrintString(OS216_GetRamDiskEntryName(i));
+        OS216_PrintString(", size ");
+        OS216_PrintInteger(OS216_GetRamDiskEntrySize(i));
+        OS216_Newline();
+    }
     
 }
 
