@@ -28,6 +28,7 @@
 #include "cpp.hpp"
 
 #include "assert.h"
+#include "execute.h"
 #include "malloc.h"
 
 #include "arch/interrupts.h"
@@ -78,7 +79,7 @@ static bool run_test_executable(){
 
     for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
         if(strcmp(OS216_GetRamDiskEntryName(i), "test") == 0){
-            
+            OS216_Execute((void*)OS216_GetRamDiskEntryData(i), OS216_GetRamDiskEntrySize(i));
             return true;
         }
     }
