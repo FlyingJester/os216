@@ -24,24 +24,22 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef OS216_KERNEL_PRINT_H
-#define OS216_KERNEL_PRINT_H
+#ifndef OS216_KERNEL_EXECUTE_H
+#define OS216_KERNEL_EXECUTE_H
 #pragma once
+
+#include <stdint.h>
+#include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void OS216_PrintString(const char *msg);
-void OS216_PrintChar(char c);
-void OS216_Newline(void);
-void OS216_NewScreen(void);
-void OS216_ClearScreen(void);
-void OS216_PrintInteger(int i);
-void OS216_PrintAddress(void *p);
+bool OS216_Execute(void *data, size_t len);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif /* OS216_KERNEL_PRINT_H */
+#endif /* OS216_KERNEL_EXECUTE_H */

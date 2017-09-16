@@ -35,7 +35,7 @@ $(LIBINITRD): buildinitrd
 buildinitrd:
 	$(MAKE) -C initrd
 
-OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o kernel.o syscall.o physical_memory.o
+OBJECTS=cpp.o driver.o driver_interrupt.o device.o malloc.o message.o schedule.o kernel.o syscall.o physical_memory.o execute.o
 
 COMMON_HEADERS=platform/fatal.h platform/print.h attributes.h
 
@@ -61,6 +61,9 @@ driver.o: driver.cpp driver.hpp arch/memory.h arch/interrupts.h device.h $(CXX_P
 device.o: device.c device.h
 	$(CC) $(CCFLAGS) -c device.c -o device.o
 
+execute.o: execute.c execute.h $(C_PRECOMPILED_HEADER)
+	$(CC) $(CCFLAGS) $(ORLINCLUDE) -c execute.c -o execute.o
+
 message.o: message.cpp message.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c message.cpp -o message.o
 
@@ -71,7 +74,7 @@ syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 	$(CXX) $(CXXFLAGS) -c syscall.cpp -o syscall.o
 
 kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
-	$(CXX) $(CXXFLAGS) $(ORLINCLUDE) -c kernel.cpp -o kernel.o
+	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
 
 CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`
 CRTEND=`$(CXX) $(CXXFLAGS) -print-file-name=crtend.o`

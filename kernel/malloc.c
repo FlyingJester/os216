@@ -27,7 +27,7 @@
 /* PCH must be first. */
 #include "malloc.h"
 
-#include "string.h"
+#include <string.h>
 
 #include "platform/fatal.h"
 #include "platform/print.h"
@@ -260,10 +260,7 @@ OS216_MALLOC_ATTR void *malloc(size_t amount){
 
 OS216_MALLOC_ATTR void *calloc(size_t count, size_t amount){
     uint8_t *const data = malloc(count * amount);
-    unsigned i;
-    for(i = 0; i < count * amount; i++){
-        data[i] = 0;
-    }
+    memset(data, 0, amount);
     return data;
 }
 

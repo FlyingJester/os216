@@ -41,8 +41,6 @@
 
 #include <cstring>
 
-#include <orl.h>
-
 /*****************************************************************************/
 
 namespace os216 {
@@ -76,6 +74,19 @@ SOFTWARE.";
 
 /*****************************************************************************/
 
+static bool run_test_executable(){
+
+    for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
+        if(strcmp(OS216_GetRamDiskEntryName(i), "test") == 0){
+            
+            return true;
+        }
+    }
+    return false;
+}
+
+/*****************************************************************************/
+
 extern "C"
 void OS216_Main(){
     OS216_InitSegmentation();
@@ -101,6 +112,7 @@ void OS216_Main(){
     
     OS216_Newline();
     
+    // Dump out some info on the initrd.
     for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
         OS216_PrintString("Initial RamDisk file ");
         OS216_PrintInteger(i);
@@ -111,6 +123,10 @@ void OS216_Main(){
         OS216_Newline();
     }
     
+    if(!run_test_executable()){
+        OS216_PrintString("Could not find test executable in initrd");
+        OS216_Newline();
+    }
 }
 
 /*****************************************************************************/
