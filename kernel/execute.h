@@ -36,6 +36,15 @@
 extern "C" {
 #endif
 
+/*****************************************************************************/
+
+struct cli_file{
+    unsigned char *data;
+    unsigned len, index;
+};
+
+/*****************************************************************************/
+
 bool OS216_Execute(void *data, size_t len);
 
 #ifdef __cplusplus

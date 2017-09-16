@@ -59,10 +59,10 @@ driver.o: driver.cpp driver.hpp arch/memory.h arch/interrupts.h device.h $(CXX_P
 	$(CXX) $(CXXFLAGS) -c driver.cpp -o driver.o
 
 device.o: device.c device.h
-	$(CC) $(CCFLAGS) -c device.c -o device.o
+	$(CC) $(CFLAGS) -c device.c -o device.o
 
 execute.o: execute.c execute.h $(C_PRECOMPILED_HEADER)
-	$(CC) $(CCFLAGS) $(ORLINCLUDE) -c execute.c -o execute.o
+	$(CC) $(CFLAGS) $(ORLINCLUDE) -c execute.c -o execute.o
 
 message.o: message.cpp message.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c message.cpp -o message.o
@@ -74,7 +74,7 @@ syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 	$(CXX) $(CXXFLAGS) -c syscall.cpp -o syscall.o
 
 kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
-	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o
+	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o	
 
 CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`
 CRTEND=`$(CXX) $(CXXFLAGS) -print-file-name=crtend.o`
@@ -95,9 +95,8 @@ KLIBDIRS=-L$(LIBCDIR) -L$(ORLDIR)
 
 kernel.elf: $(KLIBDEPS) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
 	$(CXX) $(CXXFLAGS) $(KLIBDIRS) $(CRTSTARTOBJS) $(OBJECTS) $(KLIBS) $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
-
-kernel.sym: kernel.elf
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym
+	$(STRIP) -s kernel.elf
 
 clean:
 	$(MAKE) -C $(PLATFORM) clean

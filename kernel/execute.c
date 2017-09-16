@@ -44,14 +44,15 @@
 
 /*****************************************************************************/
 
-struct cli_file{
-    unsigned char *data;
-    unsigned len, index;
-};
+void *OS216_ExeRead(orl_file_id file_void, size_t len);
 
 /*****************************************************************************/
 
-void *cli_read(orl_file_id file_void, size_t len){
+long int OS216_ExeSeek(orl_file_id file_void, long int amount, int whence);
+
+/*****************************************************************************/
+
+void *OS216_ExeRead(orl_file_id file_void, size_t len){
     struct cli_file *const file = (struct cli_file *)file_void;
     
     const unsigned at = file->index;
@@ -65,7 +66,7 @@ void *cli_read(orl_file_id file_void, size_t len){
 
 /*****************************************************************************/
 
-long int cli_seek( orl_file_id file_void, long int amount, int whence){
+long int OS216_ExeSeek( orl_file_id file_void, long int amount, int whence){
     struct cli_file *const file = (struct cli_file *)file_void;
     
     OS216_ASSERT(whence == SEEK_SET ||
@@ -93,29 +94,18 @@ long int cli_seek( orl_file_id file_void, long int amount, int whence){
 
 /*****************************************************************************/
 
-void *cli_alloc(size_t size){
-    return calloc(size, 1);
-}
-
-/*****************************************************************************/
-
-void cli_free(void *data){
-    free(data);
-}
-
-/*****************************************************************************/
-
 static struct orl_funcs funcs = {
-    cli_read,
-    cli_seek,
-    cli_alloc,
-    cli_free
+    OS216_ExeRead,
+    OS216_ExeSeek,
+    malloc,
+    free
 };
 
 /*****************************************************************************/
 
 bool OS216_Execute(void *data, size_t len){
     struct cli_file file;
+    orl_file_format format;
     
     orl_handle handle = ORLInit(&funcs);
     
@@ -124,7 +114,8 @@ bool OS216_Execute(void *data, size_t len){
     file.index = 0;
     
     /* Check format. */
-    const orl_file_format format = ORLFileIdentify(handle, &file);
+    format = ORLFileIdentify(handle, &file);
+    
     switch(format){
         case ORL_ELF:
             OS216_PrintString("ELF file\n");
@@ -139,6 +130,17 @@ bool OS216_Execute(void *data, size_t len){
             OS216_PrintString("Unknown file\n");
             ORLFini(handle);
             return false;
+    }
+    
+    {
+        orl_file_handle file_handle = ORLFileInit(handle, &file, format);
+        if(file_handle == NULL){
+            OS216_PrintString("Could not parse file\n");
+            ORLFini(handle);
+            return false;
+        }
+        
+        ORLFileFini(file_handle);
     }
     
     OS216_Newline();
