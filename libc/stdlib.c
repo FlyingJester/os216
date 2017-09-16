@@ -18,80 +18,165 @@ __forceinline
 static uint64_t strton(const char *__restrict__ str,
     const char **__restrict__ end,
     const unsigned base,
-    const unsigned max){
+    const uint64_t max){
     
+    uint64_t n = 0;
     
+    char b2;
     
+    if(base >= 10){
+        if((b2 = 10) > base)
+            b2 = base;
+    }
+    
+next_char_iter:
+    {
+        unsigned char i;
+        const unsigned char c = *str;
+        if(c < '0' && c < 'a' && c < 'A')
+            goto done;
+        
+        {
+            if(base >= 10){
+                if(c >= '0' && c <= b2){
+                    i = c - '0';
+                    goto found_val;
+                }
+            }
+            if(base > 10){
+                if(c >= 'a' && c <= 'a' + (unsigned char)(base - 10)){
+                    i = c - 'a';
+                    goto found_val;
+                }
+                if(c >= 'A' && c <= 'A' + (unsigned char)(base - 10)){
+                    i = c - 'A';
+                    goto found_val;
+                }
+            }
+            goto done;
+        }
+        found_val:
+        
+        {
+            const uint64_t val = (n * 10) + (i - '0');
+            
+            if(val > max)
+                goto done;
+            
+            n = val;
+        }
+        
+        str++;
+        goto next_char_iter;
+    }
+done:
+    
+    end[0] = str;
+    return n;
 }
 
 /*****************************************************************************/
 
-int atoi(const char *c){
-    unsigned negate = 0, base = 10;
-    
-    if(*c == '-'){
-        negate = 1;
-        c++;
-    }
-    else if(*c == '+'){
-        c++;
-    }
-    
-    
-    if(*c == '0'){
-        c++;
+#ifdef __GNUC__
+__attribute__((always_inline))
+#elif defined MSC_VER_
+__forceinline
+#endif
+static unsigned get_base(const char **str){
+    if(**str == '0'){
+        const char c = *(str[0]++);
         if(c == 'x' || c == 'X'){
-            base = 16;
-            c++;
+            str[0]++;
+            return 16;
         }
         else if(c == 'b' || c == 'B'){
-            base = 2;
-            c++;
+            str[0]++;
+            return 2;
         }
         else{
-            base = 8;
+            return 8;
         }
     }
-    
-    {
-        const int number = strton(c, NULL, base, 0xFFFFFFFF);
-    
-        if(negate)
-            return -number;
-        else
-            return number;
+    return 10;
+}
+
+/*****************************************************************************/
+
+#ifdef __GNUC__
+__attribute__((always_inline))
+#elif defined MSC_VER_
+__forceinline
+#endif
+static unsigned get_negate(const char * __restrict__ * __restrict__ str){
+    const char c = **str;
+    if(c == '-'){
+        str[0]++;
+        return 1;
     }
-}
-
-/*****************************************************************************/
-
-long atol(const char *c){
+    else if(c == '+'){
+        str[0]++;
+    }
     
+    return 0;
 }
 
 /*****************************************************************************/
 
-int64_t atoll(const char *c){
-    
-}
-unsigned long strtoul(const char *__restrict__ str,
-    const char **__restrict__ end,
-    unsigned base){
-    return strton(str, end, base, 0xFFFFFFFFFFFFFFFFul);
+#define A_TO_X(TYPE, SUFFIX)\
+TYPE ato ## SUFFIX(const char *str){\
+    const unsigned negate = get_negate(&str);\
+    const unsigned base = get_base(&str);\
+    const TYPE number = strton(str, NULL, base, ~((TYPE)0));\
+    return ((negate) ? (-number) : (number));\
 }
 
 /*****************************************************************************/
 
-uint64_t strtoull(const char *__restrict__ str,
-    const char **__restrict__ end,
-    unsigned base){
-    return strton(str, end, base, 0xFFFFFFFFFFFFFFFFull);
+A_TO_X(int, i)
+
+/*****************************************************************************/
+
+A_TO_X(long, l)
+
+/*****************************************************************************/
+
+A_TO_X(int64_t, ll)
+
+/*****************************************************************************/
+
+#define STR_TO_X(SIGNED_TYPE, UNSIGNED_TYPE, SUFFIX)\
+UNSIGNED_TYPE strtou ## SUFFIX(const char *__restrict__ str,\
+    const char **__restrict__ end,\
+    unsigned base){\
+    return strton(str, end, base, ~((UNSIGNED_TYPE)0));\
+}\
+\
+SIGNED_TYPE strto ## SUFFIX(const char *__restrict__ str,\
+    const char **__restrict__ end,\
+    unsigned base){\
+    const unsigned negate = get_negate(&str);\
+    const SIGNED_TYPE number = strton(str, end, base, (~((UNSIGNED_TYPE)0))>>1);\
+    return ((negate) ? (-number) : (number));\
 }
+
+/*****************************************************************************/
+
+STR_TO_X(int64_t, uint64_t, ll)
+
+/*****************************************************************************/
+
+STR_TO_X(long, unsigned long, l)
+
+/*****************************************************************************/
+
+STR_TO_X(int, unsigned, i)
 
 /*****************************************************************************/
 
 void qsort(void *ptr, size_t count, size_t size,
     int(*compare)(const void *, const void *)){
+    
+    /* Gnome sort for stupid...I mean, simple implementation. */
     
 #define GET_BYTE(X) (((uint8_t*)ptr)+(X*size))
 #define GET_DWORD(X) (((unsigned*)ptr)+(X*size/sizeof(unsigned)))
@@ -104,9 +189,9 @@ void qsort(void *ptr, size_t count, size_t size,
             /* XOR Swap */
             unsigned i;
             for(i = 0; i < size; i++){
-                GET(at)[i] ^= GET(at+1)[i];
-                GET(at+1)[i] ^= GET(at)[i];
-                GET(at)[i] ^= GET(at+1)[i];
+                GET_BYTE(at)[i] ^= GET_BYTE(at+1)[i];
+                GET_BYTE(at+1)[i] ^= GET_BYTE(at)[i];
+                GET_BYTE(at)[i] ^= GET_BYTE(at+1)[i];
             }
             at--;
         }

@@ -2,7 +2,7 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 LIBC=lib216c.a
-OBJECTS=string.o stdio.o ctype.o
+OBJECTS=string.o stdio.o stdlib.o ctype.o
 
 all: $(LIBC) crti.o crtn.o
 
@@ -27,7 +27,7 @@ $(LIBC): $(OBJECTS)
 	$(RANLIB) $(RANLIBFLAGS) $(LIBC)
 
 stdlib.o: stdlib.c include/stdlib.h
-	$(CC) $(CFLAGS) -c stdlib.c -o stdlib.o
+	$(CC) $(CFLAGS) -Wno-attributes -c stdlib.c -o stdlib.o
 
 stdio.o: stdio.c include/stdio.h
 	$(CC) $(CFLAGS) -c stdio.c -o stdio.o

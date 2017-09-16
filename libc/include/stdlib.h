@@ -32,13 +32,37 @@ int64_t atoll(const char *c);
 
 /*****************************************************************************/
 
+uint64_t strtoull(const char *__restrict__ str,
+    const char **__restrict__ end,
+    unsigned base);
+
+/*****************************************************************************/
+
+int64_t strtoll(const char *__restrict__ str,
+    const char **__restrict__ end,
+    unsigned base);
+
+/*****************************************************************************/
+
 unsigned long strtoul(const char *__restrict__ str,
     const char **__restrict__ end,
     unsigned base);
 
 /*****************************************************************************/
 
-uint64_t strtoull(const char *__restrict__ str,
+long strtol(const char *__restrict__ str,
+    const char **__restrict__ end,
+    unsigned base);
+
+/*****************************************************************************/
+
+unsigned strtoui(const char *__restrict__ str,
+    const char **__restrict__ end,
+    unsigned base);
+
+/*****************************************************************************/
+
+int strtoi(const char *__restrict__ str,
     const char **__restrict__ end,
     unsigned base);
 
