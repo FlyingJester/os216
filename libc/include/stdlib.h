@@ -18,6 +18,10 @@
 #define NULL ((void*)0)
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************/
 
 int atoi(const char *c);
@@ -68,7 +72,16 @@ int strtoi(const char *__restrict__ str,
 
 /*****************************************************************************/
 
+#if OS216_KERNEL && defined __GNUC__
+__attribute__((noinline))
+#elif OS216_KERNEL && defined _MSC_VER
+__declspec(noinline)
+#endif
 void qsort(void *ptr, size_t count, size_t size,
     int(*compare)(const void *, const void *));
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif /* OS216_STDLIB_STDLIB_H */

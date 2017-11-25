@@ -173,25 +173,28 @@ STR_TO_X(int, unsigned, i)
 
 /*****************************************************************************/
 
-void qsort(void *ptr, size_t count, size_t size,
+void qsort(void *const ptr, const size_t count, const size_t size,
     int(*compare)(const void *, const void *)){
     
     /* Gnome sort for stupid...I mean, simple implementation. */
     
-#define GET_BYTE(X) (((uint8_t*)ptr)+(X*size))
-#define GET_DWORD(X) (((unsigned*)ptr)+(X*size/sizeof(unsigned)))
-    
     unsigned at = 0;
+    
+    if(count == 0 || count == 1)
+        return;
+    
     while(at < count){
-        if(at == 0 || compare(GET_BYTE(at), GET_BYTE(at-1)))
+        unsigned char *const byte_ptr = ((unsigned char *)ptr) + (at * size),
+            *const previous_byte_ptr = byte_ptr - size;
+        if(at == 0 || compare(byte_ptr, previous_byte_ptr) < 0){
             at++;
+        }
         else{
-            /* XOR Swap */
             unsigned i;
             for(i = 0; i < size; i++){
-                GET_BYTE(at)[i] ^= GET_BYTE(at+1)[i];
-                GET_BYTE(at+1)[i] ^= GET_BYTE(at)[i];
-                GET_BYTE(at)[i] ^= GET_BYTE(at+1)[i];
+                const unsigned char byte = byte_ptr[i];
+                byte_ptr[i] = previous_byte_ptr[i];
+                previous_byte_ptr[i] = byte;
             }
             at--;
         }
