@@ -23,16 +23,13 @@ liborl:
 libc:
 	$(MAKE) -C $(LIBCDIR) MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
-linker: tools
-	$(MAKE) -C linker MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
-
-userland: libc liborl linker tools
+userland: libc liborl tools
 	$(MAKE) -C userland PARALLEL=${PARALLEL} ROOT=${ROOT}
 
 initrd: userland
 	$(MAKE) -C userland package PARALLEL=${PARALLEL} ROOT=${ROOT}
 
-kernel: tools libc linker liborl initrd
+kernel: tools libc liborl initrd
 	$(MAKE) -C kernel ROOT=${ROOT} PARALLEL=${PARALLEL} ORLDIR=${ORLDIR} LIBCDIR=${LIBCDIR}
 
 symbols: kernel
@@ -43,9 +40,8 @@ clean_liborl:
 
 clean: clean_liborl
 	$(MAKE) -C libc clean MODE216="kernel"
-	$(MAKE) -C linker clean MODE216="kernel"
 	$(MAKE) -C kernel clean
 	$(MAKE) -C userland clean
 
-.PHONY: clean libc kernel linker symbols liborl clean_liborl initrd userland tools
+.PHONY: clean libc kernel symbols liborl clean_liborl initrd userland tools
 .IGNORE: clean_liborl

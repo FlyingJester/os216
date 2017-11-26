@@ -96,7 +96,7 @@ KLIBDIRS=-L$(LIBCDIR) -L$(ORLDIR)
 kernel.elf: $(KLIBDEPS) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
 	$(CXX) $(CXXFLAGS) $(KLIBDIRS) $(CRTSTARTOBJS) $(OBJECTS) $(KLIBS) $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym
-	$(STRIP) -s kernel.elf
+#	$(STRIP) -s kernel.elf
 
 clean:
 	$(MAKE) -C $(PLATFORM) clean
