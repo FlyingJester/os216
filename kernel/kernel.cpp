@@ -1,5 +1,5 @@
 /* 
- *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ *  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
  * 
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -33,6 +33,7 @@
 
 #include "arch/interrupts.h"
 #include "arch/memory.h"
+#include "arch/timer.h"
 
 #include "initrd/initrd.h"
 
@@ -40,7 +41,7 @@
 #include "platform/fatal.h"
 #include "platform/print.h"
 
-#include <cstring>
+#include <string.h>
 
 /*****************************************************************************/
 
@@ -49,32 +50,33 @@ namespace os216 {
 /*****************************************************************************/
 
 static const char license_text1[] =
-"Redistribution and use in source and binary forms, with or without \
-modification, are permitted provided that the following conditions are met:";
+"Redistribution and use in source and binary forms, with or without "
+"modification, are permitted provided that the following conditions are met:";
 
 static const char license_text2[] =
-" * Redistributions of source code must retain the above copyright notice, this\n\
-\tlist of conditions and the following disclaimer.\n\
-\n\
- * Redistributions in binary form must reproduce the above copyright notice,\n\
-\tthis list of conditions and the following disclaimer in the documentation\n\
-\tand/or other materials provided with the distribution.\n\
-\n\
- * Products derived from this software may not be called \"os216\", nor may\n\
-\t\"216\" appear in their name, without prior written permission of\n\
-\tthe copyright holders.";
+" * Redistributions of source code must retain the above copyright notice, this\n"
+"\tlist of conditions and the following disclaimer.\n"
+"\n"
+" * Redistributions in binary form must reproduce the above copyright notice,\n"
+"\tthis list of conditions and the following disclaimer in the documentation\n"
+"\tand/or other materials provided with the distribution.\n"
+"\n"
+" * Products derived from this software may not be called \"os216\", nor may\n"
+"\t\"216\" appear in their name, without prior written permission of\n"
+"\tthe copyright holders.";
 
 static const char license_text3[] =
-"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR \
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, \
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE \
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER \
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, \
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE \
-SOFTWARE.";
+"THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR "
+"IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, "
+"FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE "
+"AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER "
+"LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, "
+"OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE "
+"SOFTWARE.";
 
 /*****************************************************************************/
 
+/*
 static bool run_test_executable(){
 
     for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
@@ -85,6 +87,24 @@ static bool run_test_executable(){
     }
     return false;
 }
+*/
+
+/*****************************************************************************/
+
+static unsigned os216_tick = 0, os216_second = 0;
+
+/*****************************************************************************/
+
+void os216_timer_callback(){
+    if(os216_tick++ % 100 == 0){
+        OS216_NewScreen();
+        OS216_PrintString("Tick: ");
+        OS216_PrintInteger(os216_tick++);
+        OS216_PrintString("\tSecond: ");
+        OS216_PrintInteger(os216_second++);
+        OS216_PrintString("\t\t\t\t");
+    }
+}
 
 /*****************************************************************************/
 
@@ -92,8 +112,12 @@ extern "C"
 void OS216_Main(){
     OS216_InitSegmentation();
     OS216_InitKernelMemory();
+    // Set the timer frequency
+    OS216_SetTimerInterrupt(os216_timer_callback);
     OS216_InitInterrupts();
     
+   // OS216_SetTimerSpeed(100);
+
     OS216_VM_Initialize();
     
     std::vector<BusPointer> buses;
@@ -101,8 +125,8 @@ void OS216_Main(){
     
     OS216_ClearScreen();
     
-    OS216_PrintString("\tOS 216 version 0.01\n"
-        "    Copyright (c) 2016-2017 Martin McDonough\n\n");
+    OS216_PrintString("\tOS 216 version 0.02\n"
+        "    Copyright (c) 2016-2018 Martin McDonough\n\n");
     OS216_PrintString(license_text1);
     OS216_Newline();
     OS216_Newline();
@@ -112,22 +136,6 @@ void OS216_Main(){
     OS216_PrintString(license_text3);
     
     OS216_Newline();
-    
-    // Dump out some info on the initrd.
-    for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
-        OS216_PrintString("Initial RamDisk file ");
-        OS216_PrintInteger(i);
-        OS216_PrintString(": ");
-        OS216_PrintString(OS216_GetRamDiskEntryName(i));
-        OS216_PrintString(", size ");
-        OS216_PrintInteger(OS216_GetRamDiskEntrySize(i));
-        OS216_Newline();
-    }
-    
-    if(!run_test_executable()){
-        OS216_PrintString("Could not find test executable in initrd");
-        OS216_Newline();
-    }
 }
 
 /*****************************************************************************/

@@ -73,17 +73,21 @@ schedule.o: schedule.cpp schedule.hpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS
 syscall.o: syscall.cpp $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS) syscall.hpp
 	$(CXX) $(CXXFLAGS) -c syscall.cpp -o syscall.o
 
-kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
+kernel.o: kernel.cpp driver.hpp platform/bus.hpp arch/memory.h arch/timer.h $(CXX_PRECOMPILED_HEADER) $(COMMON_HEADERS)
 	$(CXX) $(CXXFLAGS) -c kernel.cpp -o kernel.o	
 
 CRTBEGIN=`$(CXX) $(CXXFLAGS) -print-file-name=crtbegin.o`
 CRTEND=`$(CXX) $(CXXFLAGS) -print-file-name=crtend.o`
+LIBGCC=`$(CXX) $(CXXFLAGS) -print-file-name=libgcc.a`
 
 crtbegin.o:
 	cp ${CRTBEGIN} ${PWD}
 
 crtend.o:
 	cp ${CRTEND} ${PWD}
+
+libgcc.a:
+	cp ${LIBGCC} ${PWD}
 
 CRTSTARTOBJS=../libc/crti.o crtbegin.o
 CRTENDOBJS=crtend.o ../libc/crtn.o
@@ -93,10 +97,10 @@ KLIBDEPS=$(LIBPLATFORM) $(LIBARCH) $(LIBINITRD)
 KLIBS=$(KLIBDEPS) -lorl-static -l216c libgcc.a
 KLIBDIRS=-L$(LIBCDIR) -L$(ORLDIR)
 
-kernel.elf: $(KLIBDEPS) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) $(ROOT)/libc/lib216c.a kernel216.ld
-	$(CXX) $(CXXFLAGS) $(KLIBDIRS) $(CRTSTARTOBJS) $(OBJECTS) $(KLIBS) $(CRTENDOBJS) -T kernel216.ld -o kernel.elf 
+kernel.elf: $(KLIBDEPS) $(OBJECTS) $(CRTSTARTOBJS) $(CRTENDOBJS) libgcc.a $(ROOT)/libc/lib216c.a kernel216.ld
+	$(CXX) $(CXXFLAGS) $(KLIBDIRS) $(CRTSTARTOBJS) $(OBJECTS) $(KLIBS) $(CRTENDOBJS) -T kernel216.ld -o kernel.elf
 	$(OBJCOPY) --only-keep-debug kernel.elf kernel.sym
-#	$(STRIP) -s kernel.elf
+	$(STRIP) -s kernel.elf
 
 clean:
 	$(MAKE) -C $(PLATFORM) clean

@@ -34,6 +34,25 @@ extern OS216_Int_Syscall
 extern OS216_Setup8259Pic
 extern OS216_Disable8259Pic
 extern OS216_CallDriverAtInterrupt
+extern OS216_TimerInterruptCallback
+
+OS216_Int_Timer:
+    pushf
+    push eax
+    mov eax, [OS216_TimerInterruptCallback]
+    or eax, 0
+    jz no_callback
+    
+    pusha
+    push esp
+    call eax
+    pop esp
+    popa
+    
+no_callback:
+    pop eax
+    popf
+    iret
 
 ; There are 32 exceptions. Each one has its own function here.
 OS216_Int_DivideByZero:
@@ -102,7 +121,8 @@ OS216_InitInterrupts:
     mov eax, OS216_IDT
     ; Setup the offset.
     
-    os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
+;    os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
+    os216_setup_interrupt OS216_Int_Timer, 0x8F, 0
     ; Reserved
     os216_setup_interrupt OS216_Int_NMI, 0x8F, 2
     os216_setup_interrupt OS216_Int_Break, 0x8F, 3
@@ -132,8 +152,6 @@ NUM_SET_INTERRUPTS equ 21
     mov WORD [eax+idt_selector], 0x10 ; Put the code segment into the selector for the ISR
     add eax, OS216_IDTEntry_size
 %endrep
-    
-    
     
     mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*32
     mov DWORD [OS216_IDTInfo+2], OS216_IDT

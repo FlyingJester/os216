@@ -9,21 +9,34 @@ ROOT=${PWD}
 .include "216.mk"
 
 # Tools used to build the kernel image.
-tools:
-	$(MAKE) -C tools
+tools: nanojson
+	$(MAKE) -C tools ROOT=${ROOT}
 
-ORLCFLAGS=$(CFLAGS) -Wno-unused-parameter -Wno-missing-prototypes -Wno-implicit-fallthrough
-ORLCXXFLAGS=$(CXXFLAGS)
+EXTCFLAGS=$(CFLAGS) -Wno-unused-parameter -Wno-missing-prototypes -Wno-implicit-fallthrough
+EXTCXXFLAGS=$(CXXFLAGS)
 ORLDIR=${ROOT}/liborl
+NJDIR=${ROOT}/nanojson
 LIBCDIR=${ROOT}/libc
 
 liborl:
-	$(MAKE) -C $(ORLDIR) liborl-static.a CC=$(CC) LINK=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) CFLAGS="$(ORLCFLAGS)" CXXFLAGS="$(ORLCXXFLAGS)" ORL_FEATURE_FLAGS=-DORL_ENABLE_ELF
+	$(MAKE) -C $(ORLDIR) liborl-static.a CC=$(CC) LINK=$(CC) CXX=$(CXX) AR=$(AR) RANLIB=$(RANLIB) CFLAGS="$(EXTCFLAGS)" CXXFLAGS="$(EXTCXXFLAGS)" ORL_FEATURE_FLAGS=-DORL_ENABLE_ELF
+
+# nanojson is used by some of the tools.
+nanojson:
+	$(MAKE) -C $(NJDIR) static
+
+# Build nanojson in native os216 mode
+216nanojson:
+	$(MAKE) -C $(NJDIR) OBJSUFFIX=216 static CC=$(CC) LINK=$(CC) AR=$(AR) RANLIB=$(RANLIB) CFLAGS="$(EXTCFLAGS)"
 
 libc:
 	$(MAKE) -C $(LIBCDIR) MODE216="kernel" ROOT=${ROOT} ${PARALLEL}
 
-userland: libc liborl tools
+runkconf: tools drivers.json
+	tools/kconf drivers.json driver
+	touch runkconf
+
+userland: libc liborl tools 216nanojson runkconf
 	$(MAKE) -C userland PARALLEL=${PARALLEL} ROOT=${ROOT}
 
 initrd: userland
@@ -38,10 +51,16 @@ symbols: kernel
 clean_liborl:
 	$(MAKE) -C liborl clean
 
-clean: clean_liborl
+clean_nanojson:
+	$(MAKE) -C $(NJDIR) clean
+
+clean_216nanojson:
+	$(MAKE) -C $(NJDIR) clean OBJSUFFIX=216
+
+clean: clean_liborl clean_nanojson clean_216nanojson
 	$(MAKE) -C libc clean MODE216="kernel"
 	$(MAKE) -C kernel clean
 	$(MAKE) -C userland clean
 
-.PHONY: clean libc kernel symbols liborl clean_liborl initrd userland tools
+.PHONY: clean libc kernel symbols liborl clean_liborl initrd userland tools nanojson clean_nanojson 216nanojson clean_216nanojson
 .IGNORE: clean_liborl

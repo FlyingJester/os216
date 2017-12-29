@@ -7,7 +7,7 @@ LIBARCH=lib216arch.a
 
 all: $(LIBARCH)
 
-OBJECTS=interrupt.o memory.o init.o 8259pic.o io.o syscall.o cpu_state.o
+OBJECTS=interrupt.o memory.o init.o 8259pic.o 8253pit.o io.o syscall.o cpu_state.o
 
 $(LIBARCH): $(OBJECTS)
 	$(AR) rc $(LIBARCH) $(OBJECTS)
@@ -15,7 +15,7 @@ $(LIBARCH): $(OBJECTS)
 cpu_state.o: cpu_state.s
 	$(AS) $(ASFLAGS) cpu_state.s -o cpu_state.o
 
-interrupt.o: interrupt.s
+interrupt.o: interrupt.s 8259pic.inc
 	$(AS) $(ASFLAGS) interrupt.s -o interrupt.o
 
 memory.o: memory.s
@@ -24,8 +24,11 @@ memory.o: memory.s
 init.o: init.s
 	$(AS) $(ASFLAGS) init.s -o init.o
 
-8259pic.o: 8259pic.s
+8259pic.o: 8259pic.s 8259pic.inc
 	$(AS) $(ASFLAGS) 8259pic.s -o 8259pic.o
+
+8253pit.o: 8253pit.s 8259pic.inc
+	$(AS) $(ASFLAGS) 8253pit.s -o 8253pit.o
 
 io.o: io.s
 	$(AS) $(ASFLAGS) io.s -o io.o

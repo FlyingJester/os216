@@ -1,4 +1,4 @@
-;  Copyright (c) 2015-2017 Martin McDonough.  All rights reserved.
+;  Copyright (c) 2015-2018 Martin McDonough.  All rights reserved.
 ; 
 ;  Redistribution and use in source and binary forms, with or without
 ;  modification, are permitted provided that the following conditions are met:
@@ -50,6 +50,7 @@ extern _init
 extern _fini
 extern OS216_Main
 extern OS216_Serial_Init
+extern OS216_TimerInterruptCallback
 
 global _OS216_AsmMain
 _OS216_AsmMain:
@@ -57,6 +58,9 @@ _OS216_AsmMain:
     mov esp, stack_top
     
     call _init
+    
+    mov [OS216_TimerInterruptCallback], dword 0
+    
     call OS216_Serial_Init
     call OS216_Main
     

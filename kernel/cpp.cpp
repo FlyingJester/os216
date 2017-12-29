@@ -38,7 +38,7 @@
 
 /*****************************************************************************/
 
-#if defined _MSC_VER
+#if defined _MSC_VER || defined __WATCOMC__
 
 int __cdecl _purecall(void){
     OS216_FATAL("Pure virtual method call!");

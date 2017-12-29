@@ -24,24 +24,12 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef OS216_KERNEL_INTERRUPTS_H
-#define OS216_KERNEL_INTERRUPTS_H
+#ifndef OS216_KERNEL_DEVICE_H
+#define OS216_KERNEL_DEVICE_H
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*****************************************************************************/
 
-void OS216_InitInterrupts(void);
+struct OS216_Device{ int i; };
 
-/*****************************************************************************/
-
-void OS216_SubscribeDriver(unsigned vector, void *Driver);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
-
-#endif /* OS216_KERNEL_INTERRUPTS_H */
+#endif /* OS216_KERNEL_DEVICE_H */

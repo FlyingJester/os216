@@ -20,8 +20,6 @@
 +     targ_selvecs="iamcu_elf32_vec i386_coff_vec i386_coff_vec i386_pe_vec i386_aout_vec sym_vec"
 +   ;;
     i[3-7]86-*-solaris2*)
-*** binutils/ld/configure.tgt	2017-09-03 00:19:56.463429800 -0700
---- binutils/ld/configure.tgt	2017-09-03 01:22:46.667683100 -0700
 ***************
 *** 323,324 ****
 --- 323,327 ----
@@ -30,3 +28,11 @@
 + 			targ_extra_emuls="elf_iamcu i386coff i386pe"
 + 			targ_extra_ofiles="deffilep.o pe-dll.o" ;;
   x86_64-*-elf* | x86_64-*-rtems* | x86_64-*-fuchsia*)
+*** binutils/gas/configure.tgt	2017-09-03 00:19:56.463429800 -0700
+--- binutils/gas/configure.tgt	2017-09-03 01:22:46.667683100 -0700
+***************
+*** 249,250 ****
+--- 249,251 ----
+    i386-*-sysv[45]*)			fmt=elf ;;
++   i386-*-os216)			fmt=elf ;;
+    i386-*-solaris*)			fmt=elf em=solaris ;;

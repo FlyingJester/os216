@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ * Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -24,4 +24,22 @@ int toupper(int c){
         return (c - 'a') + 'A';
     else
         return c;
+}
+
+/*****************************************************************************/
+
+int iswhitespace(int c){
+    return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\v';
+}
+
+/*****************************************************************************/
+
+int isdigit(int c){
+    return c >= '0' && c <= '9';
+}
+
+/*****************************************************************************/
+
+int isalpha(int c){
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c & 0x80);
 }

@@ -18,4 +18,4 @@ test.o: test.s
 clean:
 	rm test test.o
 
-.PHONY: package
+.PHONY: package clean

@@ -2,7 +2,7 @@
 # http://creativecommons.org/publicdomain/zero/1.0/
 
 # All userland directories
-ALL_USERLAND=sys
+ALL_USERLAND=sys drivers
 
 # Userland directories to include in the kernel image for booting.
 # Currently the kernel image's packages includes just a test program.
@@ -10,11 +10,11 @@ ALL_USERLAND=sys
 # and the drivers to bring the system online (disk, display, and keyboard).
 # After that, the system should be able to boot itself from disk, and be
 # debuggable in case of a failure.
-PACKAGED_USERLAND=sys
+PACKAGED_USERLAND=sys drivers
 
 all:
 .for target in $(ALL_USERLAND)
-	$(MAKE) -C $(target) PARALLEL=${PARALLEL}
+	$(MAKE) -C $(target) ROOT=${ROOT} PARALLEL=${PARALLEL}
 .endfor
 
 package:
