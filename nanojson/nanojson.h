@@ -121,7 +121,7 @@ struct NJ_TreeElement {
     union {
         const char *object_element_name;
         unsigned array_element_index;
-    };
+    } data;
 };
 
 /*****************************************************************************/
