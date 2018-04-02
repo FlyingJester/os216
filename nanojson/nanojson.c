@@ -14,6 +14,40 @@
 
 /*****************************************************************************/
 
+static unsigned long strntol(const char *str,
+    const char **endptr,
+    unsigned char base){
+    
+    const char *last = *endptr;
+    unsigned long n = 0;
+    while(last > str){
+        const char c = *str;
+        unsigned digit;
+        str++;
+        
+        if(c >= '0' && c <= '9'){
+            digit = c - '0';
+        }
+        else if(c >= 'a' && c <= 'z'){
+            digit = c - 'a';
+        }
+        else{
+            digit = c - 'A';
+        }
+        
+        if(digit >= base){
+            break;
+        }
+        
+        n *= base;
+        n += digit;
+    }
+    endptr[0] = str;
+    return n;
+}
+
+/*****************************************************************************/
+
 void NJ_FreeValue(struct NJ_Value *value){
     
     struct NJ_Value *extra;
@@ -283,19 +317,23 @@ unsigned NJ_ParseArray(const char *string,
 float NJ_ParseNumber(const char *string, unsigned len, unsigned *i){
     long number;    
     {
-        char *end;
+        const char *end = string + len;
         const char *const start = string + *i;
-        number = strtol(start, &end, 10);
-        const unsigned len = end - start;
-        i[0] += len;
+        number = strntol(start, &end, 10);
+        {
+            const unsigned num_len = end - start;
+            i[0] += num_len;
+        }
     }
 
     if(string[*i] == '.'){
-        char *end;
+        const char *end = string + len;
         const char *const start = string + (*i) + 1;
-        float fraction = strtol(start, &end, 10);
-        const unsigned len = end - start;
-        i[0] += len + 1;
+        float fraction = strntol(start, &end, 10);
+        {
+            const unsigned num_len = end - start;
+            i[0] += num_len + 1;
+        }
         {
             unsigned n = 0;
             while(n++ < len)
