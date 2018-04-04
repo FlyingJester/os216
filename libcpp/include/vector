@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Martin McDonough.  All rights reserved.
+// Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -31,49 +31,66 @@ public:
     typedef pointer iterator;
     typedef const_pointer const_iterator;
 private:
-    unsigned short m_upfront, m_cap_po2;
-    size_type m_size;
+    size_type m_size, m_capacity;
     T *m_data;
     
-    inline bool has_room(size_type new_size){
-        const size_type cap = static_cast<size_type>(1) << m_cap_po2;
-        return cap - m_upfront >= new_size;
+    inline void inner_assign(const size_type count, const T &value){
+        T *const data = m_data;
+        for(size_type i = 0; i < count; i++){
+            new (data + i) T(value);
+        }
     }
     
 public:
     
     OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR vector()
-      : m_upfront(0)
-      , m_cap_po2(0)
-      , m_size(0)
+      : m_size(0)
+      , m_capacity(0)
       , m_data(NULL){
         
     }
     
-    explicit vector(size_type count){
-        m_data = malloc(sizeof(T) * count);
+    explicit vector(size_type count)
+      : m_size(count)
+      , m_capacity(count)
+      , m_data((T*)malloc(sizeof(T) * count)){
         for(size_type i = 0; i < count; i++){
-            new (m_data+i) T();
+            new (m_data + i) T();
         }
     }
     
-    vector(size_type count, const T &value){
-        m_data = malloc(sizeof(T) * count);
-        for(size_type i = 0; i < count; i++){
-            new (m_data+i) T();
-            m_data[i] = value;
+    vector(size_type count, const T &value)
+      : m_size(count)
+      , m_capacity(count)
+      , m_data((T*)malloc(sizeof(T) * count)){
+        inner_assign(count, value);
+    }
+    
+    explicit vector(const vector<T> &other)
+      : m_size(other.size())
+      , m_capacity(other.size())
+      , m_data((T*)malloc(sizeof(T) * other.size())){
+        
+        T *const data = m_data;
+        const size_type size = other.size();
+        for(size_type i = 0; i < size; i++){
+            new (data + i) T(other[i]);
         }
     }
     
-    vector(const vector<T> &other){
-        assign(other);
+#if __cplusplus >= 201103L
+    
+    vector(vector<T> &&other){
+        memcpy(this, &other, sizeof(vector<T>));
+        memset(&other, 0, sizeof(vector<T>));
     }
+    
+#endif
     
     ~vector(){
-        if(m_size == 0)
-            return;
-        for(size_type i = 0; i < m_size; i++){
-            (m_data + m_upfront + i)->~T();
+        const size_type size = m_size;
+        for(size_type i = 0; i < size; i++){
+            m_data[i].~T();
         }
         free(m_data);
     }
@@ -83,55 +100,60 @@ public:
         return *this;
     }
     
-    void assign(const vector<T> &other){
-        const size_type count = other.m_size;
-        m_data = (T*)malloc(count * sizeof(T));
-        for(size_type i = 0; i < count; i++){
-            const T &that = other.m_data[i + other.m_upfront];
-            new (m_data+i) T(that);
-        }
-        m_upfront = 0;
-        m_size = count;
+#if __cplusplus >= 201103L
+    
+    vector<T> &operator=(vector<T> &&other){
+        memcpy(this, &other, sizeof(vector<T>));
+        memset(&other, 0, sizeof(vector<T>));
+        return *this;
+    }
+    
+#endif
+    
+    void assign(size_type count, const T &value){
+        clear();
+        reserve(count);
+        inner_assign(count, value);
     }
     
     inline T &at(size_type i){
-        return m_data[i + m_upfront];
+        return m_data[i];
     }
     
     inline const T &at(size_type i) const {
-        return m_data[i + m_upfront];
+        return m_data[i];
     }
     
     inline T &operator[](size_type i){
-        return m_data[i + m_upfront];
+        return m_data[i];
     }
     
     inline const T &operator[](size_type i) const {
-        return m_data[i + m_upfront];
+        return m_data[i];
     }
     
     inline T &front(){
-        return m_data[m_upfront];
+        return m_data[0];
     }
     
     inline const T &front() const {
-        return m_data[m_upfront];
+        return m_data[0];
     }
     
     inline T &back(){
-        return m_data[m_upfront + m_size - 1];
+        return m_data[m_size - 1];
     }
     
     inline const T &back() const {
-        return m_data[m_upfront + m_size - 1];
+        return m_data[m_size - 1];
     }
     
     inline T *data(){
-        return m_data + m_upfront;
+        return m_data;
     }
     
     inline const T *data() const {
-        return m_data + m_upfront;
+        return m_data;
     }
     
     inline iterator begin(){
@@ -158,15 +180,15 @@ public:
         return &back();
     }
     
-    inline bool empty() const {
+    inline OS216_LIBCPP_CONSTEXPR_FUNC bool empty() const {
         return m_size == 0;
     }
     
-    inline size_type size() const {
+    inline OS216_LIBCPP_CONSTEXPR_FUNC size_type size() const {
         return m_size;
     }
     
-    inline size_type max_size(){
+    static OS216_LIBCPP_CONSTEXPR_FUNC size_type max_size(){
         return 0xFFFFFFFF;
     }
     
@@ -175,61 +197,43 @@ public:
         if(new_size > max_size())
             return; // ASSERT!?
         
-        const size_t original_cap = static_cast<size_type>(1) << m_cap_po2;
-        
-        // If there is enough left in m_data after m_upfront, don't do anything.
-        if(new_size <= m_size || has_room(new_size))
+        if(m_capacity >= new_size)
             return;
         
-        // Move so that upfront = 0, and then check if we have enough room.
-        // First get the max chunk size. This is the min of size and upfront.
-        if(m_upfront > 0){
-            const difference_type chunk_size = ((m_size < m_upfront) ? m_size : m_upfront);
-            size_type i = 0;
-            do{
-                memcpy(m_data + i, m_data + m_upfront + i, chunk_size);
-                i += chunk_size;
-            }while(i < m_size);
-            
-            if(i != m_size){
-                // Copy over whatever was left after the last chunk.
-                const difference_type last_chunk = m_size - (i - chunk_size);
-                memcpy(m_data + i, m_data + m_upfront + i, last_chunk);
-            }
-            
-            // We cleard the upfront.
-            m_upfront = 0;
+        T *const dest = (T*)malloc(sizeof(T) * new_size),
+            *const src = m_data;
+        const size_type size = m_size;
+        for(size_type i = 0; i < size; i++){
+            new (dest + i) T(src[i]);
+            src[i].~T();
         }
         
-        // If we now have room after removing the upfront, then we are done.
-        if(new_size <= m_size || original_cap >= new_size)
-            return;
-        
-        while(static_cast<size_type>(1) << m_cap_po2 < new_size)
-            m_cap_po2++;
-        
-        const size_t new_cap = static_cast<size_type>(1) << m_cap_po2;
-        m_data = (T*)realloc(m_data, new_cap);
+        m_data = dest;
+        m_capacity = new_size;
+        free(src);
     }
     
     void push_back(T &that){
-        reserve(m_upfront + m_size + 1);
-        new (m_data + m_upfront + m_size) T(that);
+        reserve(m_size + 1);
+        new (m_data + m_size) T(that);
         m_size++;
     }
     
     void push_back(const T &that){
-        reserve(m_upfront + m_size + 1);
-        new (m_data + m_upfront + m_size) T(that);
+        reserve(m_size + 1);
+        new (m_data + m_size) T(that);
         m_size++;
     }
     
     void clear(){
-        for(size_type i = 0; i < m_size; i++){
-            (m_data + m_upfront + i)->~T();
-        }
-        m_upfront = 0;
+        T *const data = m_data;
+        const size_type size = m_size;
+        
         m_size = 0;
+        
+        for(size_type i = 0; i < size; i++){
+            (data + i)->~T();
+        }
     }
     
 };
