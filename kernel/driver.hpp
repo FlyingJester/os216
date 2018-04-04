@@ -1,5 +1,5 @@
 /* 
- *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ *  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
  * 
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -51,13 +51,19 @@ public:
     
     struct LocationRange{
         LocationRange();
-        OS216_CONSTEXPR_CONSTRUCTOR LocationRange(const LocationRange &other)
+        explicit OS216_CONSTEXPR_CONSTRUCTOR LocationRange(const LocationRange &other)
           : m_start(other.m_start)
           , m_length(other.m_length){}
         
         OS216_CONSTEXPR_CONSTRUCTOR LocationRange(uintptr_t start, ptrdiff_t length)
           : m_start(start)
           , m_length(length){}
+        
+        LocationRange &operator=(const LocationRange &other){
+            m_start = other.m_start;
+            m_length = other.m_length;
+            return *this;
+        }
         
         uintptr_t m_start;
         ptrdiff_t m_length;
@@ -154,7 +160,7 @@ protected:
     std::vector<unsigned> m_interrupt_vectors;
 public:
     
-    OS216_CONSTEXPR_CONSTRUCTOR UserDriver(const struct OS216_Device &device)
+    explicit OS216_CONSTEXPR_CONSTRUCTOR UserDriver(const struct OS216_Device &device)
       : DeviceDriver(device){
         
     }

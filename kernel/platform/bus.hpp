@@ -41,15 +41,13 @@ namespace os216 {
 
 struct BusPointer {
     Bus *m_bus;
+    
+    BusPointer(const BusPointer &from) m_bus(NULL) { (void)from; }
+    
 public:
     BusPointer() : m_bus(NULL) {}
     
-    BusPointer(BusPointer &from)
-      : m_bus(from.m_bus) {
-        from.m_bus = NULL;
-    }
-    
-    BusPointer(Bus *bus)
+    explicit BusPointer(Bus *bus)
       : m_bus(bus) {
         
     }
@@ -57,14 +55,6 @@ public:
     ~BusPointer(){
         if(m_bus)
             delete m_bus;
-    }
-    
-    BusPointer &operator=(BusPointer &from){
-        if(m_bus)
-            delete m_bus;
-        m_bus = from.m_bus;
-        from.m_bus = NULL;
-        return *this;
     }
     
     BusPointer &operator=(Bus *const bus){
