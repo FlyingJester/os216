@@ -55,6 +55,15 @@ extern OS216_TimerInterruptCallback
 global _OS216_AsmMain
 _OS216_AsmMain:
     cli
+    
+    ; Check for multiboot.
+    cmp eax, 0x2BADB002
+    je os216_use_multiboot
+    
+    ; TODO! Handle other bootloaders?
+    
+os216_use_multiboot:
+    
     mov esp, stack_top
     
     call _init

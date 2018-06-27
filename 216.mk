@@ -3,8 +3,9 @@
 
 .include "platform.mk"
 
-CC=$(PREFIX)gcc
-CXX=$(PREFIX)g++
+CCTYPE?=g
+CC="$(PREFIX)$(CCTYPE)cc"
+CXX="$(PREFIX)$(CCTYPE)++"
 LD=$(PREFIX)ld
 STRIP=$(PREFIX)strip
 OBJCOPY=$(PREFIX)objcopy

@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Martin McDonough.  All rights reserved.
+// Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,6 +19,8 @@ template<typename T>
 const T& max(const T &a, const T &b){
     return (a > b) ? a : b;
 }
+
+
 
 } // namespace std
 

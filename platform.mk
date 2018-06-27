@@ -3,7 +3,7 @@
 
 TOOLARCH=i686
 
-PREFIX=$(TOOLARCH)-os216-
+PREFIX?=$(TOOLARCH)-os216-
 
 # If you do not have an os216 cross compiler built, use this instead.
 #PREFIX=$(TOOLARCH)-elf-

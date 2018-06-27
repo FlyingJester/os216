@@ -1,4 +1,4 @@
-;  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+;  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
 ; 
 ;  Redistribution and use in source and binary forms, with or without
 ;  modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,7 @@ struc OS216_IDTDescriptor
 endstruc
 
 %macro dummy_int 1
+    cli
     push null_term
     push %1
     push DWORD 0
@@ -44,7 +45,7 @@ endstruc
 %endmacro
 
 ; Dirties ebx. eax must contain the IDT
-%macro os216_setup_interrupt 3 ; Address, Type, IRQ Number, selector
+%macro os216_setup_interrupt 3 ; Address, Type, IRQ Number
     ; Setup the offset.
     mov ebx, %1
     mov WORD [eax+idt_offset0+( %3 * OS216_IDTDescriptor_size )], bx

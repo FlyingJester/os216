@@ -1,4 +1,4 @@
-;  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+;  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
 ; 
 ;  Redistribution and use in source and binary forms, with or without
 ;  modification, are permitted provided that the following conditions are met:
@@ -23,7 +23,6 @@
 ; IN THE SOFTWARE.
 
 %include "interrupt.inc"
-%include "8259pic.inc"
 
 section .text
 align 4
@@ -37,10 +36,11 @@ extern OS216_CallDriverAtInterrupt
 extern OS216_TimerInterruptCallback
 
 OS216_Int_Timer:
+    cli
     pushf
     push eax
     mov eax, [OS216_TimerInterruptCallback]
-    or eax, 0
+    cmp eax, 0
     jz no_callback
     
     pusha
@@ -52,6 +52,11 @@ OS216_Int_Timer:
 no_callback:
     pop eax
     popf
+    
+    ; Send the End Of Interrupt command to the PIC
+    mov al, 0x20
+    out 0x20, al
+    sti
     iret
 
 ; There are 32 exceptions. Each one has its own function here.
@@ -117,12 +122,16 @@ OS216_Int_Virtualization:
 
 global OS216_InitInterrupts
 OS216_InitInterrupts:
+    
+    push ebx
+    ; We always need to set up the IRQ vectors, even with an APIC
+    call OS216_Setup8259Pic
+    
     ; Begin setting up the divide by zero interrupt
     mov eax, OS216_IDT
     ; Setup the offset.
     
-;    os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
-    os216_setup_interrupt OS216_Int_Timer, 0x8F, 0
+    os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
     ; Reserved
     os216_setup_interrupt OS216_Int_NMI, 0x8F, 2
     os216_setup_interrupt OS216_Int_Break, 0x8F, 3
@@ -144,43 +153,19 @@ OS216_InitInterrupts:
     os216_setup_interrupt OS216_Int_SSE, 0x8F, 19
     os216_setup_interrupt OS216_Int_Virtualization, 0x8F, 20
     
-NUM_SET_INTERRUPTS equ 21
+    ; IRQs
+    os216_setup_interrupt OS216_Int_Timer, 0x8E, 0x20
+    
+NUM_SET_INTERRUPTS equ 0x30
 
-    add eax, OS216_IDTEntry_size * NUM_SET_INTERRUPTS
+    mov ax, OS216_IDTEntry_size * NUM_SET_INTERRUPTS
     
-%rep 32-NUM_SET_INTERRUPTS
-    mov WORD [eax+idt_selector], 0x10 ; Put the code segment into the selector for the ISR
-    add eax, OS216_IDTEntry_size
-%endrep
-    
-    mov WORD [OS216_IDTInfo], OS216_IDTEntry_size*32
+    mov WORD [OS216_IDTInfo], ax
     mov DWORD [OS216_IDTInfo+2], OS216_IDT
     lidt [OS216_IDTInfo]
     
-    ; We always need to set up the IRQ vectors, even with an APIC
-    push DWORD 40
-    push DWORD 32
-    call OS216_Setup8259Pic
-    add esp, 8
-    
-    ; Check for an APIC
-    mov eax, 1
-    push ebx
-    cpuid
     pop ebx
-    bt edx, 9
-    jc has_apic
-    ; Set the interrupts we want to see.
-    pic_clear_mask_irq 0
     
-    ; Now that the interrupt controller is properly configured, we can enable interrupts.
-    sti
-    ret
-    
-has_apic:
-    ; Not supported yet....
-    ; call OS216_Disable8259Pic
-    ; call OS216_EnableApic
     ; Now that the interrupt controller is properly configured, we can enable interrupts.
     sti
     ret

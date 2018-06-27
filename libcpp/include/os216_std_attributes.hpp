@@ -8,6 +8,16 @@
 #define OS216_STDLIB_STD_ATTRIBUTES
 #pragma once
 
+#ifndef OS216_MEMORY_PURE
+#ifdef _MSC_VER
+#define OS216_MEMORY_PURE __declspec(noalias)
+#elif defined __GNUC__
+#define OS216_MEMORY_PURE __attribute__((const))
+#else
+#define OS216_MEMORY_PURE
+#endif
+#endif
+
 #if __cplusplus < 201103L
     #define OS216_LIBCPP_CONSTEXPR_CONSTRUCTOR
     #define OS216_LIBCPP_CONSTEXPR_FUNC OS216_MEMORY_PURE

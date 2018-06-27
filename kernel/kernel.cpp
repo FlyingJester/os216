@@ -112,12 +112,14 @@ extern "C"
 void OS216_Main(){
     OS216_InitSegmentation();
     OS216_InitKernelMemory();
-    // Set the timer frequency
+    
     OS216_SetTimerInterrupt(os216_timer_callback);
+    
+    // Set the timer frequency
+    OS216_SetTimerSpeed(100);
+    
     OS216_InitInterrupts();
     
-   // OS216_SetTimerSpeed(100);
-
     OS216_VM_Initialize();
     
     std::vector<BusPointer> buses;

@@ -42,6 +42,7 @@ next_char_iter:
                     i = c - '0';
                     goto found_val;
                 }
+                goto done;
             }
             if(base > 10){
                 if(c >= 'a' && c <= 'a' + (unsigned char)(base - 10)){
@@ -71,7 +72,8 @@ next_char_iter:
     }
 done:
     
-    end[0] = str;
+    if(end != NULL)
+        end[0] = str;
     return n;
 }
 

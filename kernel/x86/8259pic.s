@@ -1,4 +1,4 @@
-;  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+;  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
 ; 
 ;  Redistribution and use in source and binary forms, with or without
 ;  modification, are permitted provided that the following conditions are met:
@@ -22,58 +22,58 @@
 ; FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 ; IN THE SOFTWARE.
 
-%include "8259pic.inc"
-
 section .text
 align 4
 
-nop_call:
-    times 64 nop
-    ret
-
 global OS216_Setup8259Pic
 OS216_Setup8259Pic:
-    xor ecx, ecx
-    xor eax, eax
-    ; Save the PIC masks
-    in al, pic_data(1)+1
-    shl ax, 8
-    in al, pic_data(2)+1
-    mov cx, ax
-    
-    ; Delay...
-    call nop_call
     
     ; Send init sequence to the PICs
-    pic_cmd_out 1, 0x11
-    pic_cmd_out 2, 0x11
-    ; Set the interrupt vector offsets.
-    pic_data_out 1, [esp+4]
-    pic_data_out 2, [esp+8]
+    mov al, 0x11
+    out 0x20, al
+    out 0xA0, al
+    
+    times 8 nop
+    
+    ; Set the interrupt vector offsets
+    mov al, 0x20
+    out 0x21, al
+    mov al, 0x28
+    out 0xA1, al
+    
+    times 8 nop
+    
     ; Set the identity of PIC2 on PIC1
-    pic_data_out 1, 4
-    ; Set PIC2's identity
-    pic_data_out 2, 2
+    mov al, 4
+    out 0x21, al
+    mov al, 2
+    out 0xA1, al
+    
+    times 8 nop
     
     ; Set the mode (8086)
-    pic_data_out 1, 0x01
-    pic_data_out 2, 0x01
+    mov al, 1
+    out 0x21, al
+    out 0xA1, al
     
-    ; Restore saved masks
-    mov ax, cx
-    xchg al, ah
-    out pic_data(1)+1, al
-    shr al, 8
-    out pic_data(2)+1, al
+    times 8 nop
     
-    ; Delay...
-    call nop_call
+    ; Unmask all interrupts
+    mov al, 0
+    out 0x21, al
+    out 0xA1, al
+    
+    times 8 nop
+    
     ret
 
 global OS216_Disable8259Pic
 OS216_Disable8259Pic:
-    mov al,0xFF
-    out pic_data(1)+1, al
-    out pic_data(2)+1, al
-    call nop_call
+    ; "Disable" by masking all interrupts.
+    mov al, 0xFF
+    out 0x21, al
+    out 0xA1, al
+    
+    times 8 nop
+    
     ret

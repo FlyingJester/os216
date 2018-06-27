@@ -52,7 +52,7 @@ struct BusPointer {
       : m_bus(NULL){
         (void)from;
     }
-
+    
 #endif
     
 public:
