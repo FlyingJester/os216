@@ -8,5 +8,5 @@ align 4
 global start
 start:
     mov eax, 0
-    ud2
+    ;ud2
     jmp start

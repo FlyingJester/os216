@@ -105,13 +105,15 @@ static orl_return os216_found_start;
 static orl_symbol_value os216_start_value;
 static orl_sec_handle os216_start_section;
 
+/*****************************************************************************/
+
 static orl_return os216_find_start(const orl_symbol_handle sym){
     const char *symname = ORLSymbolGetName(sym);
     if(strcmp(symname, "start") == 0){
         const orl_return symbol_value_ok =
             ORLSymbolGetValue(sym, &os216_start_value);
         OS216_ASSERT(symbol_value_ok == ORL_OKAY,
-            "Cound not get start symbol value");
+            "Cound not get symbol name");
         
         os216_start_section = ORLSymbolGetSecHandle(sym);
         

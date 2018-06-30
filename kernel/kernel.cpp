@@ -76,7 +76,6 @@ static const char license_text3[] =
 
 /*****************************************************************************/
 
-/*
 static bool run_test_executable(){
 
     for(size_t i = 0; i < OS216_GetRamDiskCount(); i++){
@@ -87,7 +86,6 @@ static bool run_test_executable(){
     }
     return false;
 }
-*/
 
 /*****************************************************************************/
 
@@ -96,7 +94,7 @@ static unsigned os216_tick = 0, os216_second = 0;
 /*****************************************************************************/
 
 void os216_timer_callback(){
-    if(os216_tick++ % 100 == 0){
+    if(++os216_tick % 100 == 0){
         OS216_NewScreen();
         OS216_PrintString("Tick: ");
         OS216_PrintInteger(os216_tick++);
@@ -138,6 +136,8 @@ void OS216_Main(){
     OS216_PrintString(license_text3);
     
     OS216_Newline();
+    
+    run_test_executable();
     
     while(1){}
 }
