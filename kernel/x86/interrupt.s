@@ -131,30 +131,30 @@ OS216_InitInterrupts:
     mov eax, OS216_IDT
     ; Setup the offset.
     
-    os216_setup_interrupt OS216_Int_DivideByZero, 0x8F, 0
+    os216_setup_interrupt OS216_Int_DivideByZero, 0x8E, 0
     ; Reserved
-    os216_setup_interrupt OS216_Int_NMI, 0x8F, 2
-    os216_setup_interrupt OS216_Int_Break, 0x8F, 3
-    os216_setup_interrupt OS216_Int_Overflow, 0x8F, 4
-    os216_setup_interrupt OS216_Int_Bounds, 0x8F, 5
-    os216_setup_interrupt OS216_Int_Syscall, 0x8F, 6
-    os216_setup_interrupt OS216_Int_DevNotReady, 0x8F, 7
-    os216_setup_interrupt OS216_Int_DoubleFault, 0x8F, 8
-    os216_setup_interrupt OS216_Int_Coprocessor, 0x8F, 9
-    os216_setup_interrupt OS216_Int_BadTSS, 0x8F, 10
-    os216_setup_interrupt OS216_Int_BadSegment, 0x8F, 11
-    os216_setup_interrupt OS216_Int_StackFault, 0x8F, 12
-    os216_setup_interrupt OS216_Int_GPFault, 0x8F, 13
-    os216_setup_interrupt OS216_Int_PageFault, 0x8F, 14
+    os216_setup_interrupt OS216_Int_NMI, 0x8E, 2
+    os216_setup_interrupt OS216_Int_Break, 0x8E, 3
+    os216_setup_interrupt OS216_Int_Overflow, 0x8E, 4
+    os216_setup_interrupt OS216_Int_Bounds, 0x8E, 5
+    os216_setup_interrupt OS216_Int_Syscall, 0x8E, 6
+    os216_setup_interrupt OS216_Int_DevNotReady, 0x8E, 7
+    os216_setup_interrupt OS216_Int_DoubleFault, 0x8E, 8
+    os216_setup_interrupt OS216_Int_Coprocessor, 0x8E, 9
+    os216_setup_interrupt OS216_Int_BadTSS, 0x8E, 10
+    os216_setup_interrupt OS216_Int_BadSegment, 0x8E, 11
+    os216_setup_interrupt OS216_Int_StackFault, 0x8E, 12
+    os216_setup_interrupt OS216_Int_GPFault, 0x8E, 13
+    os216_setup_interrupt OS216_Int_PageFault, 0x8E, 14
     ; Reserved
-    os216_setup_interrupt OS216_Int_FPU, 0x8F, 16
-    os216_setup_interrupt OS216_Int_Alignment, 0x8F, 17
-    os216_setup_interrupt OS216_Int_MachineCheck, 0x8F, 18
-    os216_setup_interrupt OS216_Int_SSE, 0x8F, 19
-    os216_setup_interrupt OS216_Int_Virtualization, 0x8F, 20
+    os216_setup_interrupt OS216_Int_FPU, 0x8E, 16
+    os216_setup_interrupt OS216_Int_Alignment, 0x8E, 17
+    os216_setup_interrupt OS216_Int_MachineCheck, 0x8E, 18
+    os216_setup_interrupt OS216_Int_SSE, 0x8E, 19
+    os216_setup_interrupt OS216_Int_Virtualization, 0x8E, 20
     
     ; IRQs
-    os216_setup_interrupt OS216_Int_Timer, 0x8E, 0x20
+    os216_setup_interrupt OS216_Int_Timer, 0x8F, 0x20
     
 NUM_SET_INTERRUPTS equ 0x30
 
