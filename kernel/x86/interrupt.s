@@ -43,11 +43,11 @@ OS216_Int_Timer:
     cmp eax, 0
     jz no_callback
     
-    pusha
+    pushad
     push esp
     call eax
     pop esp
-    popa
+    popad
     
 no_callback:
     pop eax

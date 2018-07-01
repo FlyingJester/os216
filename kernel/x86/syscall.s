@@ -35,6 +35,22 @@ ud2_test:
 
 global OS216_Int_Syscall
 OS216_Int_Syscall:
+    push edx
+    push ecx
+    mov edx, [esp+8]; EAX has the old EIP
+    mov cx, [ud2_test]
+    cmp WORD [edx], cx ; Check if it's UD2
+    jne not_ud2
+    
+    ; Push ebx and eax as well
+    push ebx
+    push eax
+    call OS216_SysCall
+    
+    add esp, 16
+    iret
+
+OS216_Int_SyscallX:
     push eax
     push ebx
     mov eax, [esp+8]; EAX has the old EIP

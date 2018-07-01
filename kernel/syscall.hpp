@@ -34,11 +34,23 @@
 
 /*****************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*****************************************************************************/
+
 #ifdef __GNUC__
-extern "C" __attribute__((cdecl))
+__attribute__((cdecl))
 #else
-extern "C" __cdecl
+__cdecl
 #endif
 void OS216_SysCall(unsigned call_number, ...);
+
+/*****************************************************************************/
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
 
 #endif // OS216_KERNEL_SYSCALL_HPP

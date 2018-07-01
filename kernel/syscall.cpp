@@ -29,49 +29,108 @@
 
 #include "syscall.hpp"
 
+#include "process.hpp"
+#include "schedule.hpp"
+
 #include "platform/fatal.h"
 
 #include <stdarg.h>
 
 /*****************************************************************************/
 
-static const unsigned num_syscalls = 3;
+typedef void (*os216_syscall_t)(va_list args);
 
 /*****************************************************************************/
 
-void OS216_SysCall(unsigned arg0, ...){
+void os216_nop_syscall(va_list args){
+    (void)args;
+    OS216_FATAL("nop syscall");
+}
+
+/*****************************************************************************/
+
+void os216_die_syscall(va_list args){
+    (void)args;
+    OS216_FATAL("die syscall");
+}
+
+/*****************************************************************************/
+
+void os216_vm_allocate_syscall(va_list args){
+    const void *const address = va_arg(args, void*);
+    const unsigned length = va_arg(args, unsigned);
+    const int flags = va_arg(args, int);
+    (void)address;
+    (void)length;
+    (void)flags;
+    OS216_FATAL("vm_allocate syscall");
+}
+
+/*****************************************************************************/
+
+void os216_vm_deallocate_syscall(va_list args){
+    const void *const address = va_arg(args, void*);
+    const unsigned length = va_arg(args, unsigned);
+    (void)address;
+    (void)length;
+    OS216_FATAL("vm_deallocate syscall");
+}
+
+/*****************************************************************************/
+
+void os216_vm_protect_syscall(va_list args){
+    const void *const address = va_arg(args, void*);
+    const unsigned length = va_arg(args, unsigned);
+    const int flags = va_arg(args, int);
+    (void)address;
+    (void)length;
+    (void)flags;
+    OS216_FATAL("vm_protect syscall");
+}
+
+/*****************************************************************************/
+// Syscalls shared between driver and user programs
+#define OS216_STD_SYSCALLS\
+    os216_nop_syscall,\
+    os216_die_syscall,\
+    os216_vm_allocate_syscall,\
+    os216_vm_deallocate_syscall,\
+    os216_vm_protect_syscall
+
+/*****************************************************************************/
+
+static const os216_syscall_t os216_user_syscalls[] = {
+    OS216_STD_SYSCALLS
+};
+
+/*****************************************************************************/
+
+static const os216_syscall_t os216_driver_syscalls[] = {
+    OS216_STD_SYSCALLS
+};
+
+/*****************************************************************************/
+
+void OS216_SysCall(unsigned call_number, ...){
     va_list args;
-    va_start(args, arg0);
-    const unsigned call_number = arg0;
-    if(call_number >= num_syscalls)
-        OS216_FATAL("Invalid syscall");
+    va_start(args, call_number);
     
-    switch(call_number){
-        case 0:
-            OS216_FATAL("nop syscall");
-            break;
-        case 1:
-            {
-                const int amount = va_arg(args, int);
-                (void)amount;
-            }
-            OS216_FATAL("sbrk syscall");
-            break;
-        case 2:
-            {
-                const void *const address = va_arg(args, void*);
-                const unsigned length = va_arg(args, unsigned);
-                const int flags = va_arg(args, int);
-                (void)address;
-                (void)length;
-                (void)flags;
-            }
-            OS216_FATAL("mprotect syscall");
-            break;
-        case 3:
-            OS216_FATAL("die syscall");
-            break;
+    const os216::Process *const process = os216::CurrentProcess();
+    
+    const os216_syscall_t *syscalls;
+    
+    if(process != NULL && process->driver()){
+        if(call_number >= sizeof(os216_driver_syscalls) / sizeof(*os216_driver_syscalls))
+            OS216_FATAL("Invalid syscall number");
+        syscalls = os216_driver_syscalls;
     }
+    else{
+        if(call_number >= sizeof(os216_user_syscalls) / sizeof(*os216_user_syscalls))
+            OS216_FATAL("Invalid syscall number");
+        syscalls = os216_user_syscalls;
+    }
+    
+    syscalls[call_number](args);
     
     va_end(args);
 }

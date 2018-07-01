@@ -1,5 +1,5 @@
 /* 
- *  Copyright (c) 2017 Martin McDonough.  All rights reserved.
+ *  Copyright (c) 2017-2018 Martin McDonough.  All rights reserved.
  * 
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -92,7 +92,8 @@
 
 #ifndef OS216_MALLOC_ATTR
   #ifdef __GNUC__
-    #define OS216_MALLOC_ATTR __attribute__((malloc,returns_nonnull,warn_unused_result))
+    #define OS216_MALLOC_ATTR\
+        __attribute__((malloc,returns_nonnull,warn_unused_result))
   #else
     #define OS216_MALLOC_ATTR __declspec(restrict)
   #endif
@@ -116,6 +117,14 @@
   #else
     #define OS216_WARN_UNUSED_RESULT
   #endif
+#endif
+
+
+#if ( defined __GNUC__ ) && ( ( defined __x86_64__ ) || ( defined __i386 ) )
+#define OS216_DOES_NOT_CLOBBER_REGISTERS\
+    __attribute__((no_caller_saved_registers))
+#else
+#define OS216_DOES_NOT_CLOBBER_REGISTERS
 #endif
 
 /*****************************************************************************/
