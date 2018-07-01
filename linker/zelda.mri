@@ -1,4 +1,0 @@
-create libzelda.a
-addlib elf/libzelda_elf.a
-save
-end
